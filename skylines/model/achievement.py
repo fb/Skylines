@@ -10,13 +10,18 @@ from skylines.lib.achievements import get_flight_achievements, get_achievement
 
 class UnlockedAchievement(db.Model):
     __tablename__ = 'achievements'
+    __table_args__ = (
+        db.UniqueConstraint(
+            'name', 'pilot_id', name='unique_achievement'),
+    )
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     time_created = Column(DateTime, nullable=False, default=datetime.utcnow)
     name = Column(String(), nullable=False, index=True)
 
     pilot_id = db.Column(
-        Integer, db.ForeignKey('tg_user.id', ondelete='CASCADE'), index=True)
+        Integer, db.ForeignKey('tg_user.id', ondelete='CASCADE'),
+        index=True, nullable=False)
     pilot = db.relationship('User', foreign_keys=[pilot_id],
                             backref='achievements')
 
