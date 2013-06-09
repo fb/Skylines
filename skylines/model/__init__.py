@@ -9,6 +9,7 @@ db = SQLAlchemy(session_options=dict(expire_on_commit=False))
 import skylines.model.base
 
 # Import your model modules here.
+from .achievement import UnlockedAchievement
 from .aircraft_model import AircraftModel
 from .airport import Airport
 from .airspace import Airspace
