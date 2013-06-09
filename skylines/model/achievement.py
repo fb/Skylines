@@ -13,7 +13,7 @@ class UnlockedAchievement(db.Model):
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     time_created = Column(DateTime, nullable=False, default=datetime.utcnow)
-    name = Column(String(), nullable=False)
+    name = Column(String(), nullable=False, index=True)
 
     pilot_id = db.Column(
         Integer, db.ForeignKey('tg_user.id', ondelete='CASCADE'), index=True)
