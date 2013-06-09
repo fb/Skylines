@@ -1,3 +1,5 @@
+import datetime
+
 import mock
 import nose
 from nose.tools import (assert_is_not_none, assert_equal,
@@ -34,7 +36,8 @@ def test_duration_achievement():
 
 
 def test_get_flight_achievements_inprominent():
-    flight = mock.Mock(olc_triangle_distance=10,
-                       duration=2.6)
+    hours = lambda h: datetime.timedelta(0, h*60*60)
+    flight = mock.Mock(olc_triangle_distance=10000,
+                       duration=hours(2.6))
     achieved = achievements.get_flight_achievements(flight)
     assert_equal(len(achieved), 0)

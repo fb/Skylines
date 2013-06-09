@@ -12,12 +12,12 @@ class FlightAchievementDataCollector(object):
 
     @reify
     def triangle_distance(self):
-        return self.flight.olc_triangle_distance
+        return self.flight.olc_triangle_distance / 1000
 
     @reify
     def duration(self):
         """Duration in hours"""
-        return self.flight.duration / 3600
+        return self.flight.duration.total_seconds() / 3600
 
 
 class Achievement(object):
