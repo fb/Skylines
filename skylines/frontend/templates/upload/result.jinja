@@ -5,7 +5,22 @@
 {% block title %}{% trans %}Upload Flight{% endtrans %}{% endblock %}
 
 {%- block content %}
-<form action="{{ url_for('upload.index') }}" method="post">
+{% if achievements %}
+<h2>
+<span class='gold icon-star'></span>
+{% trans %}Achievements unlocked!{% endtrans %}
+<span class='gold icon-star'></span>
+</h2>
+<p>{% trans %}Congratulations! You have unlocked new achievements.{% endtrans %}</p>
+<ul>
+    {% for ach in achievements %}
+    <li>{{ ach.title }}</li>
+    {% endfor %}
+</ul>
+<hr />
+{% endif %}
+
+<form action="{{ url_for('upload.update') }}" method="post">
   <input type="hidden" name="num_flights" value="{{ num_flights }}" />
   <input type="hidden" name="stage" value="1" />
   {% if success -%}

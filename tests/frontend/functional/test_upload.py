@@ -51,3 +51,15 @@ class TestUpload(TestController):
         b.getControl('Upload').click()
 
         assert 'Your flights have been saved.' in b.contents
+
+    def test_upload_with_achievements(self):
+        b = self.browser
+        b.open('/flights/upload')
+
+        f = open(os.path.join(HERE, 'data', '100km.igc'))
+        b.getControl('IGC or ZIP file(s)').add_file(f,
+                                                    'text/plain',
+                                                    '/tmp/100km.igc')
+        b.getControl('Upload').click()
+        assert 'Your flights have been saved.' in b.contents
+        assert 'Achievements unlocked' in b.contents

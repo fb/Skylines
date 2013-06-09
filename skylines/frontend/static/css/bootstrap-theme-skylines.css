@@ -229,3 +229,7 @@ body, .btn, .form-control, .dropdown-menu {
     margin: 0px 6px;
     background: #008eda;
 }
+
+.gold {
+  color: gold;
+}
