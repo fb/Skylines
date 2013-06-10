@@ -56,7 +56,7 @@ class TestUpload(TestController):
         b = self.browser
         b.open('/flights/upload')
 
-        f = open(os.path.join(HERE, 'data', '100km.igc'))
+        f = open(os.path.join(DATADIR, '100km.igc'))
         b.getControl('IGC or ZIP file(s)').add_file(f,
                                                     'text/plain',
                                                     '/tmp/100km.igc')
