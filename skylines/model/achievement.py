@@ -46,7 +46,7 @@ def unlock_flight_achievements(flight):
     pilot = flight.pilot
     assert pilot is not None
 
-    unlocked = [a.name for a in pilot.achievements]
+    unlocked = set(a.name for a in pilot.achievements)
     achievements = get_flight_achievements(flight)
 
     newunlocked = []
