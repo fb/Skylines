@@ -31,7 +31,7 @@ class UnlockedAchievement(db.Model):
                              backref='achievements')
 
     def __repr__(self):
-        r = "<UnlockedAchievement %s: id=%s" % (self.name, self.id)
+        r = "<UnlockedAchievement %s: id=%s>" % (self.name, self.id)
         return r.encode('utf-8')
 
     @property
