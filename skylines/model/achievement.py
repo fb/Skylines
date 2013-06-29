@@ -6,6 +6,7 @@ from sqlalchemy.types import Unicode, Integer, DateTime, Date, String
 
 from skylines.model import db
 from skylines.lib.achievements import get_flight_achievements, get_achievement
+from skylines.model.notification import create_achievement_notification
 
 
 class UnlockedAchievement(db.Model):
@@ -52,10 +53,15 @@ def unlock_flight_achievements(flight):
     newunlocked = []
     for a in achievements:
         if a.name in unlocked:
-            # don't unlock what is already unlocked
+            # TODO: check if flight was started prior the flight in existing
+            # achievement and update both acievement and notification event in
+            # this case.
             continue
-        newach = UnlockedAchievement(name=a.name, pilot=pilot, flight=flight)
-        newunlocked.append(newach)
-        db.session.add(newach)
+        else:
+            newach = UnlockedAchievement(name=a.name,
+                                         pilot=pilot, flight=flight)
+            newunlocked.append(newach)
+            db.session.add(newach)
+            create_achievement_notification(newach)
 
     return newunlocked

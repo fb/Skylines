@@ -25,6 +25,7 @@ class Event(db.Model):
         FOLLOWER = 3
         NEW_USER = 4
         CLUB_JOIN = 5
+        ACHIEVEMENT = 6
 
     # Event time
 
@@ -59,6 +60,12 @@ class Event(db.Model):
     flight_comment_id = db.Column(
         Integer, db.ForeignKey('flight_comments.id', ondelete='CASCADE'))
     flight_comment = db.relationship('FlightComment')
+
+    # An unlocked achievement, if this event is about an achievement
+
+    achievement_id = db.Column(
+        Integer, db.ForeignKey('achievements.id', ondelete='CASCADE'))
+    achievement = db.relationship('UnlockedAchievement')
 
     ##############################
 
@@ -283,3 +290,15 @@ def group_events(_events):
         events.append(event)
 
     return events
+
+
+def create_achievement_notification(achievement):
+    event = Event(type=Event.Type.ACHIEVEMENT,
+                  achievement=achievement,
+                  actor=achievement.pilot,
+                  flight=achievement.flight)
+    db.session.add(event)
+
+    # Notify pilot about his achievement
+    notif = Notification(event=event, recipient=event.actor)
+    db.session.add(notif)
