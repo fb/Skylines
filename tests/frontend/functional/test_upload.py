@@ -62,4 +62,3 @@ class TestUpload(TestController):
                                                     '/tmp/100km.igc')
         b.getControl('Upload').click()
         assert 'Your flights have been saved.' in b.contents
-        assert 'Achievements unlocked' in b.contents

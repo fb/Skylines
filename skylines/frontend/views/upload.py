@@ -16,7 +16,6 @@ from skylines.lib.xcsoar_ import analyse_flight
 from skylines.model import db, User, Flight, IGCFile
 from skylines.model.event import create_flight_notifications
 from skylines.worker import tasks
-from skylines.model.achievement import unlock_flight_achievements
 
 upload_blueprint = Blueprint('upload', 'skylines')
 
@@ -132,7 +131,6 @@ def index_post(form):
 
     flights = []
     success = False
-    achievements = []
 
     prefix = 0
     for name, f in IterateUploadFiles(form.file.raw_data):
@@ -195,10 +193,6 @@ def index_post(form):
         db.session.add(igc_file)
         db.session.add(flight)
 
-        # Make all flight properties available for achievement analysis
-        db.session.flush()
-
-        achievements.extend(unlock_flight_achievements(flight))
         create_flight_notifications(flight)
 
         # flush data to make sure we don't get duplicate files from ZIP files
@@ -218,7 +212,6 @@ def index_post(form):
 
     return render_template(
         'upload/result.jinja', flights=flights, success=success,
-        achievements=achievements,
         ModelSelectField=ModelSelectField)
 
 
