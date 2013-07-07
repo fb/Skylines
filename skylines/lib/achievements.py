@@ -12,6 +12,8 @@ class FlightAchievementDataCollector(object):
 
     @reify
     def triangle_distance(self):
+        if not self.flight.olc_triangle_distance:
+            return 0
         return self.flight.olc_triangle_distance / 1000
 
     @reify

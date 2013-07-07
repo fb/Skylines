@@ -6,7 +6,7 @@ from sqlalchemy.types import Unicode, Integer, DateTime, Date, String
 
 from skylines.model import db
 from skylines.lib.achievements import get_flight_achievements, get_achievement
-from skylines.model.notification import create_achievement_notification
+from skylines.model.event import create_achievement_notification, Event
 
 
 class UnlockedAchievement(db.Model):
@@ -18,6 +18,7 @@ class UnlockedAchievement(db.Model):
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     time_created = Column(DateTime, nullable=False, default=datetime.utcnow)
+    time_achieved = Column(DateTime, nullable=False, default=datetime.utcnow)
     name = Column(String(), nullable=False, index=True)
 
     pilot_id = db.Column(
@@ -49,19 +50,30 @@ def unlock_flight_achievements(flight):
     pilot = flight.pilot
     assert pilot is not None
 
-    unlocked = set(a.name for a in pilot.achievements)
+    unlocked_achievements = {a.name: a for a in pilot.achievements}
     achievements = get_flight_achievements(flight)
 
     newunlocked = []
     for a in achievements:
-        if a.name in unlocked:
-            # TODO: check if flight was started prior the flight in existing
+        time_achieved = flight.landing_time
+
+        if a.name in unlocked_achievements:
+            # check if flight was started prior the flight in existing
             # achievement and update both acievement and notification event in
             # this case.
-            continue
+            oldach = unlocked_achievements[a.name]
+            if oldach.time_achieved > time_achieved:
+                # reassign the flight
+                oldach.flight = flight
+                oldach.time_achieved = time_achieved
+                # Update achievement event too
+                event = Event.query(achievement_id=oldach.id).one()
+                event.flight = flight
+
         else:
             newach = UnlockedAchievement(name=a.name,
-                                         pilot=pilot, flight=flight)
+                                         pilot=pilot, flight=flight,
+                                         time_achieved=flight.landing_time)
             newunlocked.append(newach)
             db.session.add(newach)
             create_achievement_notification(newach)
