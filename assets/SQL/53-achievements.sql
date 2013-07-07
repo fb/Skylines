@@ -3,6 +3,7 @@ CREATE TABLE achievements
   id serial NOT NULL,
   name character varying NOT NULL,
   time_created timestamp without time zone NOT NULL,
+  time_achieved timestamp without time zone NOT NULL,
   pilot_id integer NOT NULL,
   flight_id integer,
   CONSTRAINT achievements_pkey PRIMARY KEY (id),
