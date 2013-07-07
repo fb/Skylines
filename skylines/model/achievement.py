@@ -29,7 +29,9 @@ class UnlockedAchievement(db.Model):
     flight_id = db.Column(
         Integer, db.ForeignKey('flights.id', ondelete='CASCADE'), index=True)
     flight = db.relationship('Flight', foreign_keys=[flight_id],
-                             backref='achievements')
+                             backref=db.backref('achievements',
+                                                order_by=name,
+                                                passive_deletes=True))
 
     def __repr__(self):
         r = "<UnlockedAchievement %s: id=%s>" % (self.name, self.id)
