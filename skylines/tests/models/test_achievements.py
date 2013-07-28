@@ -13,8 +13,13 @@ class TestAchievements(object):
         clean_db()
 
         # Create a pilot
-        self.pilot = model.User(name='John Doe')
+        self.pilot = model.User(name='Michael Sommer')
         db.session.add(self.pilot)
+
+        self.follower = model.User(name='Sebastian Kawa')
+        db.session.add(self.follower)
+
+        model.Follower.follow(self.follower, self.pilot)
 
     def tearDown(self):
         clean_db()
@@ -65,6 +70,11 @@ class TestAchievements(object):
              (model.Event.Type.ACHIEVEMENT, self.pilot.id, flight.id)])
 
         assert_is_not_none(events[0].achievement_id)
+
+        # Both pilot and his follower should receive notifications for both
+        # achievements
+        eq_(model.Notification.count_unread(self.pilot), 2)
+        eq_(model.Notification.count_unread(self.follower), 2)
 
     def test_unlock_flight_achievements_correct_order(self):
         from skylines.model.achievement import unlock_flight_achievements

@@ -300,6 +300,14 @@ def create_achievement_notification(achievement):
                   flight=achievement.flight)
     db.session.add(event)
 
-    # Notify pilot about his achievement
-    notif = Notification(event=event, recipient=event.actor)
-    db.session.add(notif)
+    # Notify pilot
+    recipients = {event.actor.id}
+
+    # Notify his followers too
+    followers = db.session.query(Follower.source_id).filter_by(destination_id=event.actor.id)
+    recipients.update([f.source_id for f in followers])
+
+    # Send out notifications
+    for recipient_id in recipients:
+        item = Notification(event=event, recipient_id=recipient_id)
+        db.session.add(item)
