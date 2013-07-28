@@ -134,6 +134,7 @@ class Notification(db.Model):
 GROUPABLE_EVENT_TYPES = [
     Event.Type.FLIGHT,
     Event.Type.FOLLOWER,
+    Event.Type.ACHIEVEMENT,
 ]
 
 
