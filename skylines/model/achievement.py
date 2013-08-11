@@ -5,7 +5,9 @@ from sqlalchemy import Column, func
 from sqlalchemy.types import Unicode, Integer, DateTime, Date, String
 
 from skylines.model import db
-from skylines.lib.achievements import get_flight_achievements, get_achievement
+from skylines.lib.achievements import (get_user_achievements,
+                                       get_flight_achievements,
+                                       get_achievement)
 from skylines.model.event import create_achievement_notification, Event
 
 
@@ -41,6 +43,29 @@ class UnlockedAchievement(db.Model):
     @property
     def title(self):
         return get_achievement(self.name).title
+
+
+def unlock_user_achievements(user, ach_definitions):
+    """Calculate and unlock user activity achievements on SkyLines
+    """
+    unlocked_achievements = {a.name: a for a in user.achievements}
+    achievements = get_user_achievements(user, ach_definitions)
+    now = datetime.now()
+    newunlocked = []
+
+    for a in achievements:
+        if a.name in unlocked_achievements:
+            # This achievement is already unlocked, do not unlock it twice
+            continue
+
+        newach = UnlockedAchievement(name=a.name,
+                                     pilot=user,
+                                     time_achieved=now)
+        newunlocked.append(newach)
+        db.session.add(newach)
+        create_achievement_notification(newach)
+
+    return newunlocked
 
 
 def unlock_flight_achievements(flight):

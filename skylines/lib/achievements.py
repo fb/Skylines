@@ -1,3 +1,5 @@
+import itertools
+
 from flask.ext.babel import _
 
 from skylines.lib.decorators import reify
@@ -30,7 +32,7 @@ class SkylinesAchievementDataCollector(object):
         self.user = user
 
     @reify
-    def flights_uploaded(self):
+    def tracks_uploaded(self):
         from skylines.model.igcfile import IGCFile
         return IGCFile.query().filter_by(owner=self.user).count()
 
@@ -83,6 +85,55 @@ class DurationAchievement(Achievement):
     def is_achieved(self, context):
         return context.duration >= self.params['duration']
 
+
+class CommentAchievement(Achievement):
+    @property
+    def title(self):
+        if self.params['number'] == 1:
+            return _("First comment made on SkyLines")
+        return _("%(number) comments made on SkyLines", **self.params)
+
+    def is_achieved(self, context):
+        # Assume SkyLinesAchievementDataCollector as context
+        return context.comments_made >= self.params['number']
+
+
+class TracksUploadedAchievement(Achievement):
+    @property
+    def title(self):
+        if self.params['number'] == 1:
+            return _("First track uploaded on SkyLines")
+        return _("%(number) tracks uploaded on SkyLines", **self.params)
+
+    def is_achieved(self, context):
+        # Assume SkyLinesAchievementDataCollector as context
+        return context.tracks_uploaded >= self.params['number']
+
+
+class UsersFollowedAchievement(Achievement):
+    @property
+    def title(self):
+        if self.params['number'] == 1:
+            return _("First user followed on SkyLines")
+        return _("%(number) users followed on SkyLines", **self.params)
+
+    def is_achieved(self, context):
+        # Assume SkyLinesAchievementDataCollector as context
+        return context.users_followed >= self.params['number']
+
+
+class FollowersAttractedAchievement(Achievement):
+    @property
+    def title(self):
+        if self.params['number'] == 1:
+            return _("Attracted first follower on SkyLines")
+        return _("Attracted %(number) followers on SkyLines", **self.params)
+
+    def is_achieved(self, context):
+        # Assume SkyLinesAchievementDataCollector as context
+        return context.followers_attracted >= self.params['number']
+
+
 FLIGHT_ACHIEVEMENTS = [TriangleAchievement('triangle-50', distance=50),
                        TriangleAchievement('triangle-100', distance=100),
                        TriangleAchievement('triangle-200', distance=200),
@@ -98,14 +149,56 @@ FLIGHT_ACHIEVEMENTS = [TriangleAchievement('triangle-50', distance=50),
                        DurationAchievement('duration-15', duration=15),
                        ]
 
-FLIGHT_ACHIEVEMENT_BY_NAME = {a.name: a for a in FLIGHT_ACHIEVEMENTS}
+
+UPLOAD_ACHIEVEMENTS = [TracksUploadedAchievement('upload-1', number=1),
+                       TracksUploadedAchievement('upload-10', number=10),
+                       TracksUploadedAchievement('upload-100', number=100),
+                       TracksUploadedAchievement('upload-1000', number=1000),
+                       ]
+
+
+COMMENT_ACHIEVEMENTS = [CommentAchievement('comment-1', number=1),
+                        CommentAchievement('comment-10', number=10),
+                        CommentAchievement('comment-100', number=100),
+                        CommentAchievement('comment-1000', number=1000),
+                        ]
+
+
+FOLLOW_ACHIEVEMENTS = [UsersFollowedAchievement('follow-1', number=1),
+                       UsersFollowedAchievement('follow-10', number=10),
+                       UsersFollowedAchievement('follow-100', number=100),
+                       UsersFollowedAchievement('follow-1000', number=1000),
+                       ]
+
+
+FOLLOWER_ACHIEVEMENTS = [FollowersAttractedAchievement('follower-1', number=1),
+                         FollowersAttractedAchievement('follower-10', number=10),
+                         FollowersAttractedAchievement('follower-100', number=100),
+                         FollowersAttractedAchievement('follower-1000', number=1000),
+                         ]
+
+
+ACHIEVEMENT_BY_NAME = {a.name: a
+                       for a in itertools.chain(FLIGHT_ACHIEVEMENTS,
+                                                UPLOAD_ACHIEVEMENTS,
+                                                COMMENT_ACHIEVEMENTS,
+                                                FOLLOW_ACHIEVEMENTS,
+                                                FOLLOWER_ACHIEVEMENTS)}
 
 
 def get_achievement(name):
-    return FLIGHT_ACHIEVEMENT_BY_NAME[name]
+    return ACHIEVEMENT_BY_NAME[name]
+
+
+def calculate_achievements(context, ach_definitions):
+    return [a for a in ach_definitions if a.is_achieved(context)]
+
+
+def get_user_achievements(user, ach_definitions):
+    context = SkylinesAchievementDataCollector(user)
+    return calculate_achievements(context, ach_definitions)
 
 
 def get_flight_achievements(flight):
     context = FlightAchievementDataCollector(flight)
-    achievements = [a for a in FLIGHT_ACHIEVEMENTS if a.is_achieved(context)]
-    return achievements
+    return calculate_achievements(context, FLIGHT_ACHIEVEMENTS)

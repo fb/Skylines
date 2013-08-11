@@ -137,7 +137,7 @@ class TestAchievements(object):
         db.session.flush()
 
         sadc = SkylinesAchievementDataCollector(self.pilot)
-        eq_(sadc.flights_uploaded, 2)
+        eq_(sadc.tracks_uploaded, 2)
 
     def test_users_followed(self):
         from skylines.lib.achievements import SkylinesAchievementDataCollector
