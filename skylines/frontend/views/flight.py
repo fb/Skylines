@@ -17,10 +17,12 @@ from skylines.lib.helpers import format_time, format_number
 from skylines.lib.formatter import units
 from skylines.lib.datetime import from_seconds_of_day
 from skylines.lib.geo import METERS_PER_DEGREE
+from skylines.lib.achievements import COMMENT_ACHIEVEMENTS
 from skylines.model import (
     db, User, Flight, FlightPhase, Location, FlightComment,
     Notification, Event, FlightMeetings
 )
+from skylines.model.achievement import unlock_user_achievements
 from skylines.model.event import create_flight_comment_notifications
 from skylines.model.flight import get_elevations_for_flight
 from skylines.worker import tasks
@@ -471,8 +473,11 @@ def add_comment():
 
     create_flight_comment_notifications(comment)
 
-    db.session.commit()
+    db.session.flush()
 
+    unlock_user_achievements(g.current_user, COMMENT_ACHIEVEMENTS)
+
+    db.session.commit()
     return redirect(url_for('.index'))
 
 
