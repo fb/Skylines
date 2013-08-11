@@ -227,7 +227,11 @@
   {%- elif event.type == types.CLUB_JOIN %}
     {{ url_for('club.index', club_id=event.club_id) }}
   {%- elif event.type == types.ACHIEVEMENT %}
-    {{ url_for('flight.index', flight_id=event.flight_id) }}
+    {% if event.flight_id %}
+        {{ url_for('flight.index', flight_id=event.flight_id) }}
+    {% else %}
+        {{ url_for('user.index', user_id=event.actor_id) }}
+    {% endif %}
   {%- endif %}
 {%- endif %}
-{%- endmacro %}
+{% endmacro %}
