@@ -22,6 +22,34 @@ class FlightAchievementDataCollector(object):
         return self.flight.duration.total_seconds() / 3600
 
 
+class SkylinesAchievementDataCollector(object):
+    """Collect statistics about skylines-related user activity
+    """
+
+    def __init__(self, user):
+        self.user = user
+
+    @reify
+    def flights_uploaded(self):
+        from skylines.model.igcfile import IGCFile
+        return IGCFile.query().filter_by(owner=self.user).count()
+
+    @reify
+    def users_followed(self):
+        from skylines.model.follower import Follower
+        return Follower.query().filter_by(source=self.user).count()
+
+    @reify
+    def followers_attracted(self):
+        from skylines.model.follower import Follower
+        return Follower.query().filter_by(destination=self.user).count()
+
+    @reify
+    def comments_made(self):
+        from skylines.model.flight_comment import FlightComment
+        return FlightComment.query().filter_by(user=self.user).count()
+
+
 class Achievement(object):
     def __init__(self, name, **params):
         self.name = name

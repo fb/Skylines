@@ -120,3 +120,64 @@ class TestAchievements(object):
         assert_is_not_none(event2)
         eq_(event2.achievement, flight2.achievements[0])
         eq_(event2.achievement.time_achieved, datetime(2013, 7, 6, 17, 0))
+
+    def test_user_upload_achievements(self):
+        from skylines.lib.achievements import SkylinesAchievementDataCollector
+
+        # Create two flights
+        igc1 = self.create_sample_igc_file('f1.igc')
+        flight1 = self.create_sample_flight(igc1)
+        db.session.add(flight1)
+
+        # Second flight was made before flight1, and only lasted 4 hours (so, 5
+        # hour achievement is not earned for it)
+        igc2 = self.create_sample_igc_file('f2.igc')
+        flight2 = self.create_sample_flight(igc2)
+        db.session.add(flight2)
+        db.session.flush()
+
+        sadc = SkylinesAchievementDataCollector(self.pilot)
+        eq_(sadc.flights_uploaded, 2)
+
+    def test_users_followed(self):
+        from skylines.lib.achievements import SkylinesAchievementDataCollector
+
+        db.session.flush()
+
+        sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
+        sadc_follower = SkylinesAchievementDataCollector(self.follower)
+
+        eq_(sadc_pilot.users_followed, 0)
+        eq_(sadc_follower.users_followed, 1)
+
+    def test_followers_attracted(self):
+        from skylines.lib.achievements import SkylinesAchievementDataCollector
+
+        db.session.flush()
+
+        sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
+        sadc_follower = SkylinesAchievementDataCollector(self.follower)
+
+        eq_(sadc_pilot.followers_attracted, 1)
+        eq_(sadc_follower.followers_attracted, 0)
+
+    def test_comments_made(self):
+        from skylines.lib.achievements import SkylinesAchievementDataCollector
+        from skylines.model.flight_comment import FlightComment
+
+        # Create flight
+        igc1 = self.create_sample_igc_file('f1.igc')
+        flight1 = self.create_sample_flight(igc1)
+        db.session.add(flight1)
+
+        # Create comment by user
+        comment = FlightComment(user=self.pilot,
+                                flight=flight1,
+                                text='Nice flight!')
+        db.session.flush()
+
+        sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
+        sadc_follower = SkylinesAchievementDataCollector(self.follower)
+
+        eq_(sadc_pilot.comments_made, 1)
+        eq_(sadc_follower.comments_made, 0)
