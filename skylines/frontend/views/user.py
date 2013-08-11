@@ -7,10 +7,12 @@ from sqlalchemy import func, and_
 from sqlalchemy.orm import contains_eager, subqueryload
 
 from skylines.lib.dbutil import get_requested_record
+from skylines.lib.achievements import FOLLOW_ACHIEVEMENTS, FOLLOWER_ACHIEVEMENTS
 from skylines.model import (
     db, User, Flight, Follower, Location, Notification, Event
 )
 from skylines.model.event import create_follower_notification
+from skylines.model.achievement import unlock_user_achievements
 
 user_blueprint = Blueprint('user', 'skylines')
 
@@ -169,6 +171,10 @@ def add_current_user_follows(followers):
 def follow():
     Follower.follow(g.current_user, g.user)
     create_follower_notification(g.user, g.current_user)
+    db.session.flush()
+
+    unlock_user_achievements(g.current_user, FOLLOW_ACHIEVEMENTS)
+    unlock_user_achievements(g.user, FOLLOWER_ACHIEVEMENTS)
     db.session.commit()
     return redirect(request.referrer or url_for('.index'))
 
