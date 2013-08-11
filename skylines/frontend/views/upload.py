@@ -14,7 +14,9 @@ from skylines.lib.decorators import login_required
 from skylines.lib.md5 import file_md5
 from skylines.lib.xcsoar_ import analyse_flight
 from skylines.model import db, User, Flight, IGCFile
+from skylines.lib.achievements import UPLOAD_ACHIEVEMENTS
 from skylines.model.event import create_flight_notifications
+from skylines.model.achievement import unlock_user_achievements
 from skylines.worker import tasks
 
 upload_blueprint = Blueprint('upload', 'skylines')
@@ -199,6 +201,10 @@ def index_post(form):
         db.session.flush()
 
         success = True
+
+    db.session.flush()
+
+    unlock_user_achievements(user, UPLOAD_ACHIEVEMENTS)
 
     db.session.commit()
 
