@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from sqlalchemy import Column, func
-from sqlalchemy.types import Unicode, Integer, DateTime, Date, String
+from sqlalchemy import Column
+from sqlalchemy.types import Integer, DateTime, String
 
 from skylines.model import db
 from skylines.lib.achievements import (get_user_achievements,
@@ -24,7 +24,7 @@ class UnlockedAchievement(db.Model):
     name = Column(String(), nullable=False, index=True)
 
     pilot_id = db.Column(
-        Integer, db.ForeignKey('tg_user.id', ondelete='CASCADE'),
+        Integer, db.ForeignKey('users.id', ondelete='CASCADE'),
         index=True, nullable=False)
     pilot = db.relationship('User', foreign_keys=[pilot_id],
                             backref='achievements')
