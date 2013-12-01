@@ -155,7 +155,7 @@
 
   <div class="row">
     {% if distance_flights -%}
-    <div class="col-sm-6 col-md-4 col-md-offset-2">
+    <div class="col-sm-6 col-md-4">
       <h2>{% trans %}Distance Flights{% endtrans %}</h2>
       <table class="table">
         <thead>
@@ -227,6 +227,11 @@
 
         {% if g.user.achievements %}
         <table class='table'>
+          <thead>
+            <tr>
+              <th colspan="2">&nbsp;</th>
+            </tr>
+          </thead>
           {% for ach in g.user.achievements %}
           <tr>
           <td>
@@ -235,7 +240,7 @@
           </td>
           <td>
             {% if ach.flight_id %}
-              <a href="{{url_for('flight.index', flight_id=ach.flight_id)}}" class='btn btn-mini'>Show</a>
+              <a href="{{url_for('flight.index', flight_id=ach.flight_id)}}" class='btn btn-default btn-sm'>Show</a>
             {% endif %}
           </td>
           <tr>
