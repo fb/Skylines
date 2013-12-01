@@ -4,7 +4,7 @@ from geoalchemy2.shape import to_shape, from_shape
 from shapely.geometry import LineString
 from nose.tools import eq_, assert_is_not_none, assert_in
 
-from skylines.tests import setup_app, teardown_db, clean_db
+from tests import setup_app, teardown_db, clean_db
 from skylines import model, db
 
 
@@ -13,10 +13,10 @@ class TestAchievements(object):
         clean_db()
 
         # Create a pilot
-        self.pilot = model.User(name='Michael Sommer')
+        self.pilot = model.User(first_name='Michael', last_name='Sommer')
         db.session.add(self.pilot)
 
-        self.follower = model.User(name='Sebastian Kawa')
+        self.follower = model.User(first_name='Sebastian', last_name='Kawa')
         db.session.add(self.follower)
 
         model.Follower.follow(self.follower, self.pilot)
