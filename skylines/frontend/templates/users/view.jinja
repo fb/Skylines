@@ -225,22 +225,25 @@
       <h2>
       {% trans %}Achievements{% endtrans %}</h2>
 
+        {% if g.user.achievements %}
         <table class='table'>
-
-        {% for ach in user.achievements %}
-        <tr>
-        <td>
-          <strong>{{ach.title}}</strong>
-            ({{ insert_timeago_date(ach.time_achieved) }}).
-        </td>
-        <td>
-          {% if ach.flight_id %}
-            <a href="{{url_for('flight.index', flight_id=ach.flight_id)}}" class='btn btn-mini'>Show</a>
-          {% endif %}
-        </td>
-        <tr>
-        {% endfor %}
+          {% for ach in g.user.achievements %}
+          <tr>
+          <td>
+            <strong>{{ach.title}}</strong>
+              ({{ insert_timeago_date(ach.time_achieved) }}).
+          </td>
+          <td>
+            {% if ach.flight_id %}
+              <a href="{{url_for('flight.index', flight_id=ach.flight_id)}}" class='btn btn-mini'>Show</a>
+            {% endif %}
+          </td>
+          <tr>
+          {% endfor %}
         </table>
+        {% else %}
+        <p>{% trans name=g.user.name %} {{name}} has no achievements.{% endtrans %}</p>
+        {% endif %}
     </div>
   </div>
 
