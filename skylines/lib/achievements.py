@@ -91,7 +91,7 @@ class CommentAchievement(Achievement):
     def title(self):
         if self.params['number'] == 1:
             return _("First comment made on SkyLines")
-        return _("%(number) comments made on SkyLines", **self.params)
+        return _("%(number)s comments made on SkyLines", **self.params)
 
     def is_achieved(self, context):
         # Assume SkyLinesAchievementDataCollector as context
@@ -103,7 +103,7 @@ class TracksUploadedAchievement(Achievement):
     def title(self):
         if self.params['number'] == 1:
             return _("First track uploaded on SkyLines")
-        return _("%(number) tracks uploaded on SkyLines", **self.params)
+        return _("%(number)s tracks uploaded on SkyLines", **self.params)
 
     def is_achieved(self, context):
         # Assume SkyLinesAchievementDataCollector as context
@@ -115,7 +115,7 @@ class UsersFollowedAchievement(Achievement):
     def title(self):
         if self.params['number'] == 1:
             return _("First user followed on SkyLines")
-        return _("%(number) users followed on SkyLines", **self.params)
+        return _("%(number)s users followed on SkyLines", **self.params)
 
     def is_achieved(self, context):
         # Assume SkyLinesAchievementDataCollector as context
@@ -127,7 +127,7 @@ class FollowersAttractedAchievement(Achievement):
     def title(self):
         if self.params['number'] == 1:
             return _("Attracted first follower on SkyLines")
-        return _("Attracted %(number) followers on SkyLines", **self.params)
+        return _("Attracted %(number)s followers on SkyLines", **self.params)
 
     def is_achieved(self, context):
         # Assume SkyLinesAchievementDataCollector as context
