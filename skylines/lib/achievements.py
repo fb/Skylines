@@ -1,4 +1,5 @@
 import itertools
+import bisect
 
 from flask.ext.babel import _
 
@@ -46,6 +47,50 @@ class FlightAchievementDataCollector(object):
             return 0
 
         return lastphase.distance / 1000  # we don't care about fractions
+
+    @reify
+    def altitude_gain(self):
+        """Altitude gain in meters
+
+        Altitude gain is a difference between altitude at the end of powered
+        flight and maximum altitude achieved.
+        """
+        if self.flight.takeoff_airport is None:
+            # Cannot reliably determine altitude gain if flight was not
+            # recorded from takeoff.  We assume that all flight are started at
+            # some known airporrt here, what might not be universally true,
+            # though. Another approach is to check presence of "powered" phase
+            # as first phase. That might not be too reliable though.
+            return 0
+
+        # Skip all phases until the last powered one. We will start counting
+        # altitude gain after last powered phase.
+        free_phase = None
+        for ph in reversed(self.flight.phases):
+            if ph.phase_type == ph.PT_POWERED:
+                break
+            free_phase = ph
+
+        if free_phase is None:
+            # All flight is powered, does not count
+            return 0
+
+        # time of day of first free flight phase
+        stime = free_phase.start_time
+        start_sod = stime.hour * 3600 + stime.minute * 60 + stime.second
+
+        fpath = self._flight_path
+
+        start_idx = bisect.bisect([f.seconds_of_day for f in fpath], start_sod)
+        release_alt = fpath[start_idx].altitude
+        max_alt = max(f.altitude for f in fpath[start_idx:])
+
+        return max(max_alt - release_alt, 0)
+
+    @reify
+    def _flight_path(self):
+        from skylines.lib.xcsoar_.flightpath import flight_path
+        return flight_path(self.flight.igc_file)
 
 
 class SkylinesAchievementDataCollector(object):

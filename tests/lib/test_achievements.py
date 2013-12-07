@@ -63,9 +63,12 @@ class TestFlightAchievementsDataCollector(object):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
         assert_equal(c.final_glide_distance, 36)
 
-    @classmethod
-    @contextmanager
-    def mock_db(cls):
+    def test_altitude_gain(self):
+        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        assert_equal(c.altitude_gain, 981)
+
+    @staticmethod
+    def mock_db():
         def airport_by_location(loc, *args, **kw):
             L = model.Location
             LOCS = [(L(54.47745, 24.991717), model.Airport(name="Paluknys"))]
@@ -79,26 +82,20 @@ class TestFlightAchievementsDataCollector(object):
         def timezone_by_location(loc):
             pass
 
-        airport_patch = mock.patch("skylines.model.Airport.by_location",
-                                   side_effect=airport_by_location)
-        tz_patch = mock.patch("skylines.model.TimeZone.by_location",
-                              side_effect=timezone_by_location)
+        mock.patch("skylines.model.Airport.by_location",
+                   side_effect=airport_by_location).start()
+        mock.patch("skylines.model.TimeZone.by_location",
+                   side_effect=timezone_by_location).start()
 
-        deltrace_patch = mock.patch.object(analysis, "delete_trace")
-        delphase_patch = mock.patch("skylines.model.Flight.delete_phases")
+        mock.patch.object(analysis, "delete_trace").start()
+        mock.patch("skylines.model.Flight.delete_phases").start()
 
-        with airport_patch, tz_patch, deltrace_patch, delphase_patch:
-            yield
-
-    @classmethod
-    @contextmanager
-    def mock_flask_config(cls):
+    @staticmethod
+    def mock_flask_config():
         app_mock = mock.Mock()
         app_mock.config = {"SKYLINES_FILES_PATH": DATADIR}
-        f_patch = mock.patch.object(files, "current_app", app_mock)
-        a_patch = mock.patch.object(analysis, "current_app", app_mock)
-        with f_patch, a_patch:
-            yield
+        mock.patch.object(files, "current_app", app_mock).start()
+        mock.patch.object(analysis, "current_app", app_mock).start()
 
     @classmethod
     def create_flight(cls, igcfile):
@@ -109,15 +106,16 @@ class TestFlightAchievementsDataCollector(object):
         flight = model.Flight()
         flight.igc_file = igc
 
-        with cls.mock_flask_config(), cls.mock_db():
-            success = analysis.analyse_flight(flight, full=2048,
-                                              triangle=6144, sprint=512)
-            assert_true(success, "IGC file analysis failed")
+        success = analysis.analyse_flight(flight, full=2048,
+                                          triangle=6144, sprint=512)
+        assert_true(success, "IGC file analysis failed")
 
         return flight
 
     @classmethod
     def setUpClass(cls):
+        cls.mock_flask_config()
+        cls.mock_db()
         try:
             # Load several igc files for analysis
             cls.flight_100km = cls.create_flight("100km.igc")
