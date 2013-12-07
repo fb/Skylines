@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from geoalchemy2.shape import to_shape, from_shape
+from geoalchemy2.shape import from_shape
 from shapely.geometry import LineString
-from nose.tools import eq_, assert_is_not_none, assert_in
+from nose.tools import eq_, assert_is_not_none
 
-from tests import setup_app, teardown_db, clean_db
+from tests import clean_db
 from skylines import model, db
 
 
@@ -171,9 +171,7 @@ class TestAchievements(object):
         db.session.add(flight1)
 
         # Create comment by user
-        comment = FlightComment(user=self.pilot,
-                                flight=flight1,
-                                text='Nice flight!')
+        FlightComment(user=self.pilot, flight=flight1, text='Nice flight!')
         db.session.flush()
 
         sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
