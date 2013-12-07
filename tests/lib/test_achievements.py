@@ -59,6 +59,10 @@ class TestFlightAchievementsDataCollector(object):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
         assert_equal(c.triangle_distance, 57)
 
+    def test_final_glide_distance(self):
+        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        assert_equal(c.final_glide_distance, 36)
+
     @classmethod
     @contextmanager
     def mock_db(cls):

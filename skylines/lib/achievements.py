@@ -23,6 +23,30 @@ class FlightAchievementDataCollector(object):
         """Duration in hours"""
         return self.flight.duration.total_seconds() / 3600
 
+    @reify
+    def final_glide_distance(self):
+        """Final glide distance in km
+
+        Phase of flight is considered a "final glide", if it is followed by
+        landing in airfield without gaining height by circling. I.e. it will
+        effectively be last phase of the flight, ended by landing on airfield.
+        """
+        from skylines.model import FlightPhase  # prevent circular imports
+
+        if not self.flight.phases:
+            return 0
+
+        if self.flight.landing_airport is None:
+            # Did not land on airport - no final glide
+            return 0
+
+        lastphase = self.flight.phases[-1]
+        if lastphase.phase_type != FlightPhase.PT_CRUISE:
+            # Circling after final glide? Final glide was not that final, sorry
+            return 0
+
+        return lastphase.distance / 1000  # we don't care about fractions
+
 
 class SkylinesAchievementDataCollector(object):
     """Collect statistics about skylines-related user activity
