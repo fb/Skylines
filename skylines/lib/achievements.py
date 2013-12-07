@@ -88,6 +88,21 @@ class FlightAchievementDataCollector(object):
         return max(max_alt - release_alt, 0)
 
     @reify
+    def circling_percentage(self):
+        """Return circling percentage for a flight
+        """
+        cp = None
+        for cp in self.flight.circling_performance:
+            if cp.circling_direction == cp.CD_TOTAL:
+                break
+
+        if cp is None:
+            # No circling were detected
+            return 0
+
+        return cp.fraction
+
+    @reify
     def _flight_path(self):
         from skylines.lib.xcsoar_.flightpath import flight_path
         return flight_path(self.flight.igc_file)

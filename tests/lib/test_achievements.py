@@ -67,6 +67,10 @@ class TestFlightAchievementsDataCollector(object):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
         assert_equal(c.altitude_gain, 981)
 
+    def test_circling_percentage(self):
+        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        assert_equal(c.circling_percentage, 30)
+
     @staticmethod
     def mock_db():
         def airport_by_location(loc, *args, **kw):
