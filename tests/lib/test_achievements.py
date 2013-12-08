@@ -6,9 +6,11 @@ import mock
 from nose.tools import (assert_is_not_none, assert_equal,
                         assert_true, assert_false)
 
-from skylines import model
+from skylines import model, create_app
 from skylines.lib import achievements, files
 from skylines.lib.xcsoar_ import analysis
+
+import config
 
 
 HERE = os.path.dirname(__file__)
@@ -120,13 +122,16 @@ class TestFlightAchievementsDataCollector(object):
     def setUpClass(cls):
         cls.mock_flask_config()
         cls.mock_db()
-        try:
-            # Load several igc files for analysis
-            cls.flight_100km = cls.create_flight("100km.igc")
-        finally:
-            # Drop anything added to session (we don't use real db for these
-            # tests)
-            model.db.session.rollback()
+
+        app = create_app(config_file=config.TESTING_CONF_PATH)
+        with app.app_context():
+            try:
+                # Load several igc files for analysis
+                cls.flight_100km = cls.create_flight("100km.igc")
+            finally:
+                # Drop anything added to session (we don't use real db for these
+                # tests)
+                model.db.session.rollback()
 
     @classmethod
     def tearDownClass(cls):
