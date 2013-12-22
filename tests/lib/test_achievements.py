@@ -70,6 +70,21 @@ class TestFlightAchievementsDataCollector(object):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
         assert c.circling_percentage == 30
 
+    def test_time_below_400_m(self):
+        with self.level_ground(100):
+            c = achievements.FlightAchievementDataCollector(self.flight_100km)
+            assert c.time_below_400_m == 121
+
+    def level_ground(self, elevation):
+        # Patch get_elevations_for_flight to return constant ground elevation
+        from skylines.lib.xcsoar_ import flight_path
+
+        def get_constant_elevation(flight):
+            path = flight_path(flight.igc_file)
+            return ((fix.seconds_of_day, elevation) for fix in path)
+        return mock.patch.object(achievements, "get_elevations_for_flight",
+                                 side_effect=get_constant_elevation)
+
     @staticmethod
     def mock_db():
         def airport_by_location(loc, *args, **kw):

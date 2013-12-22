@@ -4,6 +4,7 @@ import bisect
 from flask.ext.babel import _
 
 from skylines.lib.decorators import reify
+from skylines.model.flight import get_elevations_for_flight
 
 
 class FlightAchievementDataCollector(object):
@@ -63,21 +64,7 @@ class FlightAchievementDataCollector(object):
             # as first phase. That might not be too reliable though.
             return 0
 
-        # Skip all phases until the last powered one. We will start counting
-        # altitude gain after last powered phase.
-        free_phase = None
-        for ph in reversed(self.flight.phases):
-            if ph.phase_type == ph.PT_POWERED:
-                break
-            free_phase = ph
-
-        if free_phase is None:
-            # All flight is powered, does not count
-            return 0
-
-        # time of day of first free flight phase
-        stime = free_phase.start_time
-        start_sod = stime.hour * 3600 + stime.minute * 60 + stime.second
+        start_sod = self._release_time
 
         fpath = self._flight_path
 
@@ -86,6 +73,34 @@ class FlightAchievementDataCollector(object):
         max_alt = max(f.altitude for f in fpath[start_idx:])
 
         return max(max_alt - release_alt, 0)
+
+    @reify
+    def time_below_400_m(self):
+        """Time (in seconds) below 400 m AGL
+        """
+        TARGET_AGL = 140
+        last_ts = None
+        time_below_target = 0
+
+        for ts, agl in self._agls:
+            if self._release_time and ts < self._release_time:
+                # Do not count time before release
+                continue
+
+            if last_ts is None:
+                # Skip first record - we don't know how long it lasted
+                last_ts = ts
+                continue
+
+            if agl < TARGET_AGL:
+                # We assume pilot spent at `agl` all the time, since the last
+                # fix.  Fixes are usually separated by short amount of time
+                # (1-5s), so this is acceptable approximation.
+                time_below_target += ts - last_ts
+
+            last_ts = ts
+
+        return time_below_target
 
     @reify
     def circling_percentage(self):
@@ -106,6 +121,50 @@ class FlightAchievementDataCollector(object):
     def _flight_path(self):
         from skylines.lib.xcsoar_.flightpath import flight_path
         return flight_path(self.flight.igc_file)
+
+    @reify
+    def _elevations(self):
+        return list(get_elevations_for_flight(self.flight))
+
+    @reify
+    def _agls(self):
+        """Calculate AGL height for each flight fix
+
+        Return list of pairs: (seconds_after_midnight, agl).  Return only
+        points, for which ground elevation is available.
+        """
+        fpath = iter(self._flight_path)
+
+        # We expect elevation times to be subset of flight path times, so for
+        # each elevation point there exist corresponding flight path fix.
+        agls = []
+        for etime, elev in self._elevations:
+            fix = fpath.next()
+            while etime != fix.seconds_of_day:
+                assert fix.seconds_of_day < etime
+                fix = fpath.next()
+
+            agls.append((etime, fix.altitude - elev))
+
+        return agls
+
+    @reify
+    def _release_time(self):
+        """Find release time (in seconds after midnight)
+        """
+        # Skip all phases until the last powered one. We will start counting
+        # altitude gain after last powered phase.
+        free_phase = None
+        for ph in reversed(self.flight.phases):
+            if ph.phase_type == ph.PT_POWERED:
+                break
+            free_phase = ph
+
+        if not free_phase:
+            return None
+
+        stime = free_phase.start_time
+        return stime.hour * 3600 + stime.minute * 60 + stime.second
 
 
 class SkylinesAchievementDataCollector(object):
