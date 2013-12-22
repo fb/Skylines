@@ -1,10 +1,7 @@
 import os
 import datetime
-from contextlib import contextmanager
 
 import mock
-from nose.tools import (assert_is_not_none, assert_equal,
-                        assert_true, assert_false)
 
 from skylines import model, create_app
 from skylines.lib import achievements, files
@@ -19,29 +16,29 @@ DATADIR = os.path.join(HERE, '..', 'data')
 
 def test_get_achievement():
     a = achievements.get_achievement('triangle-50')
-    assert_is_not_none(a)
-    assert_equal(repr(a),
-                 "<Achievement triangle-50: 'Triangle of more than 50 km'>")
+    assert a is not None
+    assert (repr(a) ==
+            "<Achievement triangle-50: 'Triangle of more than 50 km'>")
 
 
 def test_triangle_achievement():
     a = achievements.TriangleAchievement('test', distance=100)
 
-    assert_equal(a.title, 'Triangle of more than 100 km')
+    assert a.title == 'Triangle of more than 100 km'
 
-    assert_true(a.is_achieved(mock.Mock(triangle_distance=120)))
-    assert_true(a.is_achieved(mock.Mock(triangle_distance=100)))
-    assert_false(a.is_achieved(mock.Mock(triangle_distance=90)))
+    assert a.is_achieved(mock.Mock(triangle_distance=120))
+    assert a.is_achieved(mock.Mock(triangle_distance=100))
+    assert not a.is_achieved(mock.Mock(triangle_distance=90))
 
 
 def test_duration_achievement():
     a = achievements.DurationAchievement('test', duration=3)
 
-    assert_equal(a.title, 'Flight duration of more than 3 h')
+    assert a.title == 'Flight duration of more than 3 h'
 
-    assert_true(a.is_achieved(mock.Mock(duration=4)))
-    assert_true(a.is_achieved(mock.Mock(duration=3)))
-    assert_false(a.is_achieved(mock.Mock(duration=2.5)))
+    assert a.is_achieved(mock.Mock(duration=4))
+    assert a.is_achieved(mock.Mock(duration=3))
+    assert not a.is_achieved(mock.Mock(duration=2.5))
 
 
 def test_get_flight_achievements_inprominent():
@@ -49,29 +46,29 @@ def test_get_flight_achievements_inprominent():
     flight = mock.Mock(olc_triangle_distance=10000,
                        duration=hours(2.6))
     achieved = achievements.get_flight_achievements(flight)
-    assert_equal(len(achieved), 0)
+    assert len(achieved) == 0
 
 
 class TestFlightAchievementsDataCollector(object):
     def test_duration(self):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
-        assert_equal(c.duration, 3.39)
+        assert c.duration == 3.39
 
     def test_triangle_distance(self):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
-        assert_equal(c.triangle_distance, 57)
+        assert c.triangle_distance == 57
 
     def test_final_glide_distance(self):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
-        assert_equal(c.final_glide_distance, 36)
+        assert c.final_glide_distance == 36
 
     def test_altitude_gain(self):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
-        assert_equal(c.altitude_gain, 981)
+        assert c.altitude_gain == 981
 
     def test_circling_percentage(self):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
-        assert_equal(c.circling_percentage, 30)
+        assert c.circling_percentage == 30
 
     @staticmethod
     def mock_db():
@@ -114,12 +111,12 @@ class TestFlightAchievementsDataCollector(object):
 
         success = analysis.analyse_flight(flight, full=2048,
                                           triangle=6144, sprint=512)
-        assert_true(success, "IGC file analysis failed")
+        assert success, "IGC file analysis failed"
 
         return flight
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         cls.mock_flask_config()
         cls.mock_db()
 
@@ -134,5 +131,5 @@ class TestFlightAchievementsDataCollector(object):
                 model.db.session.rollback()
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_lass(cls):
         mock.patch.stopall()

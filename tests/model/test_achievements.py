@@ -2,7 +2,6 @@
 from datetime import datetime
 from geoalchemy2.shape import from_shape
 from shapely.geometry import LineString
-from nose.tools import eq_, assert_is_not_none
 
 from skylines import model, create_app
 from skylines.model import db
@@ -30,7 +29,7 @@ class TestAchievements(object):
         with cls.app.app_context():
             teardown_db()
 
-    def setUp(self):
+    def setup(self):
         self.context = self.app.app_context()
         self.context.push()
 
@@ -45,7 +44,7 @@ class TestAchievements(object):
 
         model.Follower.follow(self.follower, self.pilot)
 
-    def tearDown(self):
+    def teardown(self):
         clean_db()
         db.session.rollback()
         self.context.pop()
@@ -84,23 +83,23 @@ class TestAchievements(object):
         db.session.flush()
 
         # Make sure achievements are unlocked
-        eq_([a.name for a in self.pilot.achievements],
-            ['duration-3', 'duration-5'])
+        assert ([a.name for a in self.pilot.achievements] ==
+                ['duration-3', 'duration-5'])
 
         # Make sure events are created. We expect 2 event: for both unlocked
         # achievements
         events = list(model.Event.query())
-        eq_(len(events), 2)
-        eq_([(e.type, e.actor_id, e.flight_id) for e in events],
-            [(model.Event.Type.ACHIEVEMENT, self.pilot.id, flight.id),
-             (model.Event.Type.ACHIEVEMENT, self.pilot.id, flight.id)])
+        assert len(events) == 2
+        assert ([(e.type, e.actor_id, e.flight_id) for e in events] ==
+                [(model.Event.Type.ACHIEVEMENT, self.pilot.id, flight.id),
+                 (model.Event.Type.ACHIEVEMENT, self.pilot.id, flight.id)])
 
-        assert_is_not_none(events[0].achievement_id)
+        assert events[0].achievement_id is not None
 
         # Both pilot and his follower should receive notifications for both
         # achievements
-        eq_(model.Notification.count_unread(self.pilot), 2)
-        eq_(model.Notification.count_unread(self.follower), 2)
+        assert model.Notification.count_unread(self.pilot) == 2
+        assert model.Notification.count_unread(self.follower) == 2
 
     def test_unlock_flight_achievements_correct_order(self):
         from skylines.model.achievement import unlock_flight_achievements
@@ -130,22 +129,22 @@ class TestAchievements(object):
         db.session.flush()
 
         # Expect 'duration-3' achievement to be reassociated with flight2
-        eq_([a.name for a in self.pilot.achievements],
-            ['duration-3', 'duration-5'])
+        assert ([a.name for a in self.pilot.achievements] ==
+                ['duration-3', 'duration-5'])
 
-        eq_([a.name for a in flight1.achievements], ['duration-5'])
-        eq_([a.name for a in flight2.achievements], ['duration-3'])
+        assert [a.name for a in flight1.achievements] == ['duration-5']
+        assert [a.name for a in flight2.achievements] == ['duration-3']
 
         # Event for duration-3 achievement should be reassociated too
         event1 = model.Event.query(flight_id=flight1.id).one()
-        assert_is_not_none(event1)
-        eq_(event1.achievement, flight1.achievements[0])
-        eq_(event1.achievement.time_achieved, datetime(2013, 7, 7, 18, 0))
+        assert event1 is not None
+        assert event1.achievement == flight1.achievements[0]
+        assert event1.achievement.time_achieved == datetime(2013, 7, 7, 18, 0)
 
         event2 = model.Event.query(flight_id=flight2.id).one()
-        assert_is_not_none(event2)
-        eq_(event2.achievement, flight2.achievements[0])
-        eq_(event2.achievement.time_achieved, datetime(2013, 7, 6, 17, 0))
+        assert event2 is not None
+        assert event2.achievement == flight2.achievements[0]
+        assert event2.achievement.time_achieved == datetime(2013, 7, 6, 17, 0)
 
     def test_user_upload_achievements(self):
         from skylines.lib.achievements import SkylinesAchievementDataCollector
@@ -163,7 +162,7 @@ class TestAchievements(object):
         db.session.flush()
 
         sadc = SkylinesAchievementDataCollector(self.pilot)
-        eq_(sadc.tracks_uploaded, 2)
+        assert sadc.tracks_uploaded == 2
 
     def test_users_followed(self):
         from skylines.lib.achievements import SkylinesAchievementDataCollector
@@ -173,8 +172,8 @@ class TestAchievements(object):
         sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
         sadc_follower = SkylinesAchievementDataCollector(self.follower)
 
-        eq_(sadc_pilot.users_followed, 0)
-        eq_(sadc_follower.users_followed, 1)
+        assert sadc_pilot.users_followed == 0
+        assert sadc_follower.users_followed == 1
 
     def test_followers_attracted(self):
         from skylines.lib.achievements import SkylinesAchievementDataCollector
@@ -184,8 +183,8 @@ class TestAchievements(object):
         sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
         sadc_follower = SkylinesAchievementDataCollector(self.follower)
 
-        eq_(sadc_pilot.followers_attracted, 1)
-        eq_(sadc_follower.followers_attracted, 0)
+        assert sadc_pilot.followers_attracted == 1
+        assert sadc_follower.followers_attracted == 0
 
     def test_comments_made(self):
         from skylines.lib.achievements import SkylinesAchievementDataCollector
@@ -203,5 +202,5 @@ class TestAchievements(object):
         sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
         sadc_follower = SkylinesAchievementDataCollector(self.follower)
 
-        eq_(sadc_pilot.comments_made, 1)
-        eq_(sadc_follower.comments_made, 0)
+        assert sadc_pilot.comments_made == 1
+        assert sadc_follower.comments_made == 0
