@@ -1,40 +1,17 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+
+import pytest
 from geoalchemy2.shape import from_shape
 from shapely.geometry import LineString
 
-from skylines import model, create_app
+from skylines import model
 from skylines.model import db
 
-import config
 
-from tests import setup_db, teardown_db, clean_db
-
-
+@pytest.mark.usefixtures("db")
 class TestAchievements(object):
-
-    # Create an empty database before we start our tests for this module
-    @classmethod
-    def setup_class(cls):
-        """Function called by nose on module load"""
-        cls.app = create_app(config_file=config.TESTING_CONF_PATH)
-
-        with cls.app.app_context():
-            setup_db()
-
-    # Tear down that database
-    @classmethod
-    def teardown_class(cls):
-        """Function called by nose after all tests in this module ran"""
-        with cls.app.app_context():
-            teardown_db()
-
     def setup(self):
-        self.context = self.app.app_context()
-        self.context.push()
-
-        clean_db()
-
         # Create a pilot
         self.pilot = model.User(first_name='Michael', last_name='Sommer')
         db.session.add(self.pilot)
@@ -43,11 +20,6 @@ class TestAchievements(object):
         db.session.add(self.follower)
 
         model.Follower.follow(self.follower, self.pilot)
-
-    def teardown(self):
-        clean_db()
-        db.session.rollback()
-        self.context.pop()
 
     def create_sample_igc_file(self, fname):
         igc = model.IGCFile(filename=fname,

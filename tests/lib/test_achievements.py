@@ -1,13 +1,12 @@
 import os
 import datetime
 
+import pytest
 import mock
 
-from skylines import model, create_app
+from skylines import model
 from skylines.lib import achievements, files
 from skylines.lib.xcsoar_ import analysis
-
-import config
 
 
 HERE = os.path.dirname(__file__)
@@ -49,6 +48,7 @@ def test_get_flight_achievements_inprominent():
     assert len(achieved) == 0
 
 
+@pytest.mark.usefixtures("db")
 class TestFlightAchievementsDataCollector(object):
     def test_duration(self):
         c = achievements.FlightAchievementDataCollector(self.flight_100km)
@@ -97,16 +97,8 @@ class TestFlightAchievementsDataCollector(object):
 
             return None
 
-        def timezone_by_location(loc):
-            pass
-
         mock.patch("skylines.model.Airport.by_location",
                    side_effect=airport_by_location).start()
-        mock.patch("skylines.model.TimeZone.by_location",
-                   side_effect=timezone_by_location).start()
-
-        mock.patch.object(analysis, "delete_trace").start()
-        mock.patch("skylines.model.Flight.delete_phases").start()
 
     @staticmethod
     def mock_flask_config():
@@ -115,8 +107,8 @@ class TestFlightAchievementsDataCollector(object):
         mock.patch.object(files, "current_app", app_mock).start()
         mock.patch.object(analysis, "current_app", app_mock).start()
 
-    @classmethod
-    def create_flight(cls, igcfile):
+    @staticmethod
+    def create_flight(igcfile):
         igc = model.IGCFile(filename=igcfile,
                             md5=str(hash(igcfile)),
                             # owner=cls.pilot,
@@ -131,20 +123,13 @@ class TestFlightAchievementsDataCollector(object):
         return flight
 
     @classmethod
-    def setup_class(cls):
+    @pytest.yield_fixture(scope='class', autouse=True)
+    def setup_mocks(cls, db_schema):
         cls.mock_flask_config()
         cls.mock_db()
 
-        app = create_app(config_file=config.TESTING_CONF_PATH)
-        with app.app_context():
-            try:
-                # Load several igc files for analysis
-                cls.flight_100km = cls.create_flight("100km.igc")
-            finally:
-                # Drop anything added to session (we don't use real db for these
-                # tests)
-                model.db.session.rollback()
+        cls.flight_100km = cls.create_flight("100km.igc")
 
-    @classmethod
-    def teardown_lass(cls):
+        yield
+
         mock.patch.stopall()
