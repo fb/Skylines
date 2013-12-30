@@ -235,6 +235,22 @@ class PilotMetrics(object):
             .scalar()
         return c
 
+    @reify
+    def pic_hours(self):
+        return self._hours(Flight.pilot)
+
+    @reify
+    def copilot_hours(self):
+        return self._hours(Flight.co_pilot)
+
+    def _hours(self, attr):
+        flight_time = Flight.landing_time - Flight.takeoff_time
+        td = db.session.query(func.sum(flight_time)) \
+            .filter(attr == self.user) \
+            .scalar()
+
+        return td.total_seconds() / 60 / 60 if td else 0
+
     def _pilot_or_copilot(self):
         return (Flight.pilot == self.user) | (Flight.co_pilot == self.user)
 
@@ -388,6 +404,24 @@ class DifferentCountriesAchievement(Achievement):
         return context.takeoff_country_count >= self.params["number"]
 
 
+class PICHoursAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Flying as PIC for %(hours)s hours", **self.params)
+
+    def is_achieved(self, context):
+        return context.pic_hours >= self.params["hours"]
+
+
+class CoPilotHoursAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Flying as co-pilot for %(hours)s hours", **self.params)
+
+    def is_achieved(self, context):
+        return context.copilot_hours >= self.params["hours"]
+
+
 FLIGHT_ACHIEVEMENTS = \
     [TriangleAchievement('triangle-50', distance=50),
      TriangleAchievement('triangle-100', distance=100),
@@ -493,6 +527,29 @@ PILOT_ACHIEVEMENTS = \
      DifferentCountriesAchievement("countries-10", number=10),
      DifferentCountriesAchievement("countries-15", number=15),
      DifferentCountriesAchievement("countries-20", number=20),
+
+     PICHoursAchievement("pic-hours-25", hours=25),
+     PICHoursAchievement("pic-hours-50", hours=50),
+     PICHoursAchievement("pic-hours-75", hours=75),
+     PICHoursAchievement("pic-hours-150", hours=150),
+     PICHoursAchievement("pic-hours-200", hours=200),
+     PICHoursAchievement("pic-hours-500", hours=500),
+     PICHoursAchievement("pic-hours-1000", hours=1000),
+     PICHoursAchievement("pic-hours-2000", hours=2000),
+     PICHoursAchievement("pic-hours-5000", hours=5000),
+     PICHoursAchievement("pic-hours-10000", hours=10000),
+
+     CoPilotHoursAchievement("copilot-hours-25", hours=25),
+     CoPilotHoursAchievement("copilot-hours-50", hours=50),
+     CoPilotHoursAchievement("copilot-hours-75", hours=75),
+     CoPilotHoursAchievement("copilot-hours-150", hours=150),
+     CoPilotHoursAchievement("copilot-hours-200", hours=200),
+     CoPilotHoursAchievement("copilot-hours-500", hours=500),
+     CoPilotHoursAchievement("copilot-hours-1000", hours=1000),
+     CoPilotHoursAchievement("copilot-hours-2000", hours=2000),
+     CoPilotHoursAchievement("copilot-hours-5000", hours=5000),
+     CoPilotHoursAchievement("copilot-hours-10000", hours=10000),
+
      ]
 
 

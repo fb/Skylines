@@ -286,3 +286,44 @@ class TestPilotMetrics(object):
 
         c2 = achievements.PilotMetrics(self.follower)
         assert c2.takeoff_airport_count == 1
+
+    def test_pic_hours(self):
+        c = achievements.PilotMetrics(self.pilot)
+        assert c.pic_hours == 0
+
+        igc1 = self.create_sample_igc_file('f1.igc')
+        flight1 = self.create_sample_flight(igc1)
+        flight1.takeoff_time = datetime.datetime(2013, 12, 31, 12, 0)
+        flight1.landing_time = datetime.datetime(2013, 12, 31, 15, 45)
+        model.db.session.add(flight1)
+
+        model.db.session.flush()
+
+        c1 = achievements.PilotMetrics(self.pilot)
+        assert c1.pic_hours == 3.75
+
+        c2 = achievements.PilotMetrics(self.follower)
+        assert c2.pic_hours == 0
+
+    def test_copilot_hours(self):
+        igc1 = self.create_sample_igc_file('f1.igc')
+        flight1 = self.create_sample_flight(igc1)
+        flight1.takeoff_time = datetime.datetime(2013, 12, 31, 12, 0)
+        flight1.landing_time = datetime.datetime(2013, 12, 31, 15, 45)
+        flight1.co_pilot = self.follower
+        model.db.session.add(flight1)
+
+        igc2 = self.create_sample_igc_file('f2.igc')
+        flight2 = self.create_sample_flight(igc2)
+        flight2.takeoff_time = datetime.datetime(2013, 12, 30, 11, 0)
+        flight2.landing_time = datetime.datetime(2013, 12, 30, 15, 15)
+        flight2.co_pilot = self.follower
+        model.db.session.add(flight2)
+
+        model.db.session.flush()
+
+        c1 = achievements.PilotMetrics(self.pilot)
+        assert c1.copilot_hours == 0
+
+        c2 = achievements.PilotMetrics(self.follower)
+        assert c2.copilot_hours == 8
