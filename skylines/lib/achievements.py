@@ -2,9 +2,16 @@ import itertools
 import bisect
 
 from flask.ext.babel import _
+from sqlalchemy import func, distinct
+
+from skylines.model import db
+from skylines.model.flight import Flight, get_elevations_for_flight
+from skylines.model.igcfile import IGCFile
+from skylines.model.follower import Follower
+from skylines.model.flight_comment import FlightComment
+from skylines.model.flight_phase import FlightPhase
 
 from skylines.lib.decorators import reify
-from skylines.model.flight import get_elevations_for_flight
 
 
 class FlightMetrics(object):
@@ -39,7 +46,6 @@ class FlightMetrics(object):
         landing in airfield without gaining height by circling. I.e. it will
         effectively be last phase of the flight, ended by landing on airfield.
         """
-        from skylines.model import FlightPhase  # prevent circular imports
 
         if not self.flight.phases:
             return 0
@@ -191,31 +197,23 @@ class PilotMetrics(object):
 
     @reify
     def tracks_uploaded(self):
-        from skylines.model.igcfile import IGCFile
         return IGCFile.query().filter_by(owner=self.user).count()
 
     @reify
     def users_followed(self):
-        from skylines.model.follower import Follower
         return Follower.query().filter_by(source=self.user).count()
 
     @reify
     def followers_attracted(self):
-        from skylines.model.follower import Follower
         return Follower.query().filter_by(destination=self.user).count()
 
     @reify
     def comments_made(self):
-        from skylines.model.flight_comment import FlightComment
         return FlightComment.query().filter_by(user=self.user).count()
 
     @reify
     def total_distance(self):
         """Total distance in km"""
-        from sqlalchemy import func
-        from skylines.model.flight import Flight
-        from skylines.model import db
-
         c = db.session.query(func.sum(Flight.olc_classic_distance)) \
             .filter(self._pilot_or_copilot())
 
@@ -223,17 +221,12 @@ class PilotMetrics(object):
 
     @reify
     def takeoff_airport_count(self):
-        from sqlalchemy import func, distinct
-        from skylines.model.flight import Flight
-        from skylines.model import db
-
         c = db.session.query(func.count(distinct(Flight.takeoff_airport_id))) \
             .filter(self._pilot_or_copilot()) \
             .scalar()
         return c
 
     def _pilot_or_copilot(self):
-        from skylines.model.flight import Flight
         return (Flight.pilot == self.user) | (Flight.co_pilot == self.user)
 
 
