@@ -6,6 +6,7 @@ from sqlalchemy import func, distinct
 
 from skylines.model import db
 from skylines.model.flight import Flight, get_elevations_for_flight
+from skylines.model.airport import Airport
 from skylines.model.igcfile import IGCFile
 from skylines.model.follower import Follower
 from skylines.model.flight_comment import FlightComment
@@ -226,6 +227,14 @@ class PilotMetrics(object):
             .scalar()
         return c
 
+    @reify
+    def takeoff_country_count(self):
+        c = db.session.query(func.count(distinct(Airport.country_code))) \
+            .join(Flight, Flight.takeoff_airport_id == Airport.id) \
+            .filter(self._pilot_or_copilot()) \
+            .scalar()
+        return c
+
     def _pilot_or_copilot(self):
         return (Flight.pilot == self.user) | (Flight.co_pilot == self.user)
 
@@ -289,15 +298,6 @@ class TimeBelow400mAchievement(Achievement):
 
     def is_achieved(self, context):
         return context.time_below_400_m / 60.0 >= self.params['minutes']
-
-
-class DifferentAirfieldsAchievement(Achievement):
-    @property
-    def title(self):
-        return _("Flights from %(number)s different airfields", **self.params)
-
-    def is_achieved(self, context):
-        return context.takeoff_airport_count >= self.params["number"]
 
 
 class CommentAchievement(Achievement):
@@ -368,6 +368,24 @@ class TotalDistanceAchievement(Achievement):
     def is_achieved(self, context):
         # Assume PilotMetrics as context
         return context.total_distance >= self.params['number']
+
+
+class DifferentAirfieldsAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Flights from %(number)s different airfields", **self.params)
+
+    def is_achieved(self, context):
+        return context.takeoff_airport_count >= self.params["number"]
+
+
+class DifferentCountriesAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Flights from %(number)s different countries", **self.params)
+
+    def is_achieved(self, context):
+        return context.takeoff_country_count >= self.params["number"]
 
 
 FLIGHT_ACHIEVEMENTS = \
@@ -466,6 +484,15 @@ PILOT_ACHIEVEMENTS = \
      DifferentAirfieldsAchievement("airfields-20", number=20),
      DifferentAirfieldsAchievement("airfields-30", number=30),
      DifferentAirfieldsAchievement("airfields-50", number=50),
+
+     DifferentCountriesAchievement("countries-2", number=2),
+     DifferentCountriesAchievement("countries-3", number=3),
+     DifferentCountriesAchievement("countries-4", number=4),
+     DifferentCountriesAchievement("countries-5", number=5),
+     DifferentCountriesAchievement("countries-7", number=7),
+     DifferentCountriesAchievement("countries-10", number=10),
+     DifferentCountriesAchievement("countries-15", number=15),
+     DifferentCountriesAchievement("countries-20", number=20),
      ]
 
 
