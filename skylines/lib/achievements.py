@@ -194,6 +194,18 @@ class PilotMetrics(object):
         from skylines.model.flight_comment import FlightComment
         return FlightComment.query().filter_by(user=self.user).count()
 
+    @reify
+    def total_distance(self):
+        """Total distance in km"""
+        from sqlalchemy import func
+        from skylines.model.flight import Flight
+        from skylines.model import db
+
+        c = db.session.query(func.sum(Flight.olc_classic_distance)) \
+            .filter(Flight.pilot == self.user)
+
+        return (c.scalar() or 0) / 1000.0
+
 
 class Achievement(object):
     def __init__(self, name, **params):
@@ -277,6 +289,16 @@ class FollowersAttractedAchievement(Achievement):
         return context.followers_attracted >= self.params['number']
 
 
+class TotalDistanceAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Log a total distance of %(number)s km", **self.params)
+
+    def is_achieved(self, context):
+        # Assume PilotMetrics as context
+        return context.total_distance >= self.params['number']
+
+
 FLIGHT_ACHIEVEMENTS = [TriangleAchievement('triangle-50', distance=50),
                        TriangleAchievement('triangle-100', distance=100),
                        TriangleAchievement('triangle-200', distance=200),
@@ -320,13 +342,28 @@ FOLLOWER_ACHIEVEMENTS = [FollowersAttractedAchievement('follower-1', number=1),
                          FollowersAttractedAchievement('follower-1000', number=1000),
                          ]
 
+TOTAL_DISTANCE_ACHIEVEMENTS = [TotalDistanceAchievement('total-distance-500', number=500),
+                               TotalDistanceAchievement('total-distance-1000', number=1000),
+                               TotalDistanceAchievement('total-distance-2500', number=2500),
+                               TotalDistanceAchievement('total-distance-5000', number=5000),
+                               TotalDistanceAchievement('total-distance-10000', number=10000),
+                               TotalDistanceAchievement('total-distance-25000', number=25000),
+                               TotalDistanceAchievement('total-distance-50000', number=50000),
+                               TotalDistanceAchievement('total-distance-75000', number=75000),
+                               TotalDistanceAchievement('total-distance-100000', number=100000),
+                               TotalDistanceAchievement('total-distance-200000', number=200000),
+                               TotalDistanceAchievement('total-distance-500000', number=500000),
+                               TotalDistanceAchievement('total-distance-1000000', number=1000000)
+                               ]
+
 
 ACHIEVEMENT_BY_NAME = {a.name: a
                        for a in itertools.chain(FLIGHT_ACHIEVEMENTS,
                                                 UPLOAD_ACHIEVEMENTS,
                                                 COMMENT_ACHIEVEMENTS,
                                                 FOLLOW_ACHIEVEMENTS,
-                                                FOLLOWER_ACHIEVEMENTS)}
+                                                FOLLOWER_ACHIEVEMENTS,
+                                                TOTAL_DISTANCE_ACHIEVEMENTS)}
 
 
 def get_achievement(name):

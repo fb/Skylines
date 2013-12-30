@@ -3,6 +3,8 @@ import datetime
 
 import pytest
 import mock
+from geoalchemy2.shape import from_shape
+from shapely.geometry import LineString
 
 from skylines import model
 from skylines.lib import achievements, files
@@ -133,3 +135,56 @@ class TestFlightMetrics(object):
         yield
 
         mock.patch.stopall()
+
+
+@pytest.mark.usefixtures("db")
+class TestPilotMetrics(object):
+    def setup(self):
+        # Create a pilot
+        self.pilot = model.User(first_name='Michael', last_name='Sommer')
+        model.db.session.add(self.pilot)
+
+        self.follower = model.User(first_name='Sebastian', last_name='Kawa')
+        model.db.session.add(self.follower)
+
+    def create_sample_igc_file(self, fname):
+        igc = model.IGCFile(filename=fname,
+                            md5=str(hash(fname)),
+                            owner=self.pilot,
+                            date_utc=datetime.datetime(2013, 12, 31, 13, 0))
+        return igc
+
+    def create_sample_flight(self, igc_file):
+        flight = model.Flight()
+        flight.igc_file = igc_file
+        flight.pilot = self.pilot
+
+        flight.timestamps = []
+
+        coordinates = [(0, 0), (1, 1)]
+        linestring = LineString(coordinates)
+        flight.locations = from_shape(linestring, srid=4326)
+
+        flight.takeoff_time = datetime.datetime(2013, 12, 30, 13, 0)
+        flight.landing_time = datetime.datetime(2013, 12, 30, 18, 0)
+        flight.date_local = datetime.date(2013, 12, 30)
+        return flight
+
+    def test_total_distance_has_flights(self):
+        # When user has no flights, distance is 0 (not None)
+        c = achievements.PilotMetrics(self.pilot)
+        assert c.total_distance == 0
+
+        igc1 = self.create_sample_igc_file('f1.igc')
+        flight1 = self.create_sample_flight(igc1)
+        flight1.olc_classic_distance = 89999
+
+        model.db.session.add(flight1)
+        model.db.session.flush()
+
+        c = achievements.PilotMetrics(self.pilot)
+        assert c.total_distance == 89.999
+
+        # Make sure users are not getting scores from other pilots
+        c2 = achievements.PilotMetrics(self.follower)
+        assert c2.total_distance == 0
