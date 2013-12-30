@@ -173,7 +173,7 @@ class TestPilotMetrics(object):
         flight.date_local = datetime.date(2013, 12, 30)
         return flight
 
-    def test_total_distance_has_flights(self):
+    def test_total_distance(self):
         # When user has no flights, distance is 0 (not None)
         c = achievements.PilotMetrics(self.pilot)
         assert c.total_distance == 0
@@ -181,7 +181,6 @@ class TestPilotMetrics(object):
         igc = self.create_sample_igc_file('f1.igc')
         flight = self.create_sample_flight(igc)
         flight.olc_classic_distance = 89999
-
         model.db.session.add(flight)
         model.db.session.flush()
 
@@ -198,3 +197,46 @@ class TestPilotMetrics(object):
 
         c3 = achievements.PilotMetrics(self.follower)
         assert c3.total_distance == 89.999
+
+    def test_takeoff_airport_count(self):
+        c = achievements.PilotMetrics(self.pilot)
+        assert c.takeoff_airport_count == 0
+
+        ap1 = model.airport.Airport(name="Paluknys", country_code="LT")
+        model.db.session.add(ap1)
+
+        ap2 = model.airport.Airport(name="Pociunai", country_code="LT")
+        model.db.session.add(ap2)
+
+        # Set up flights from two distinct airfields for pilot and one for co-
+        # pilot
+        igc1 = self.create_sample_igc_file('f1.igc')
+        flight1 = self.create_sample_flight(igc1)
+        flight1.takeoff_airport = ap1
+        model.db.session.add(flight1)
+
+        igc2 = self.create_sample_igc_file('f2.igc')
+        flight2 = self.create_sample_flight(igc2)
+        flight2.takeoff_airport = ap2
+        flight2.co_pilot = self.follower
+        model.db.session.add(flight2)
+
+        igc3 = self.create_sample_igc_file('f3.igc')
+        flight3 = self.create_sample_flight(igc3)
+        flight3.takeoff_airport = ap2
+        flight3.pilot = self.follower
+        flight3.co_pilot = self.pilot
+        model.db.session.add(flight3)
+
+        # no takeoff airport flight
+        igc4 = self.create_sample_igc_file('f4.igc')
+        flight4 = self.create_sample_flight(igc4)
+        model.db.session.add(flight4)
+
+        model.db.session.flush()
+
+        c1 = achievements.PilotMetrics(self.pilot)
+        assert c1.takeoff_airport_count == 2
+
+        c2 = achievements.PilotMetrics(self.follower)
+        assert c2.takeoff_airport_count == 1

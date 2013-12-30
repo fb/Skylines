@@ -217,10 +217,24 @@ class PilotMetrics(object):
         from skylines.model import db
 
         c = db.session.query(func.sum(Flight.olc_classic_distance)) \
-            .filter((Flight.pilot == self.user) |
-                    (Flight.co_pilot == self.user))
+            .filter(self._pilot_or_copilot())
 
         return (c.scalar() or 0) / 1000.0
+
+    @reify
+    def takeoff_airport_count(self):
+        from sqlalchemy import func, distinct
+        from skylines.model.flight import Flight
+        from skylines.model import db
+
+        c = db.session.query(func.count(distinct(Flight.takeoff_airport_id))) \
+            .filter(self._pilot_or_copilot()) \
+            .scalar()
+        return c
+
+    def _pilot_or_copilot(self):
+        from skylines.model.flight import Flight
+        return (Flight.pilot == self.user) | (Flight.co_pilot == self.user)
 
 
 class Achievement(object):
@@ -282,6 +296,15 @@ class TimeBelow400mAchievement(Achievement):
 
     def is_achieved(self, context):
         return context.time_below_400_m / 60.0 >= self.params['minutes']
+
+
+class DifferentAirfieldsAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Flights from %(number)s different airfields", **self.params)
+
+    def is_achieved(self, context):
+        return context.takeoff_airport_count >= self.params["number"]
 
 
 class CommentAchievement(Achievement):
@@ -429,7 +452,7 @@ FOLLOWER_ACHIEVEMENTS = \
      FollowersAttractedAchievement('follower-1000', number=1000),
      ]
 
-TOTAL_DISTANCE_ACHIEVEMENTS = \
+PILOT_ACHIEVEMENTS = \
     [TotalDistanceAchievement('total-distance-500', number=500),
      TotalDistanceAchievement('total-distance-1000', number=1000),
      TotalDistanceAchievement('total-distance-2500', number=2500),
@@ -441,7 +464,15 @@ TOTAL_DISTANCE_ACHIEVEMENTS = \
      TotalDistanceAchievement('total-distance-100000', number=100000),
      TotalDistanceAchievement('total-distance-200000', number=200000),
      TotalDistanceAchievement('total-distance-500000', number=500000),
-     TotalDistanceAchievement('total-distance-1000000', number=1000000)
+     TotalDistanceAchievement('total-distance-1000000', number=1000000),
+
+     DifferentAirfieldsAchievement("airfields-2", number=2),
+     DifferentAirfieldsAchievement("airfields-5", number=5),
+     DifferentAirfieldsAchievement("airfields-10", number=10),
+     DifferentAirfieldsAchievement("airfields-15", number=15),
+     DifferentAirfieldsAchievement("airfields-20", number=20),
+     DifferentAirfieldsAchievement("airfields-30", number=30),
+     DifferentAirfieldsAchievement("airfields-50", number=50),
      ]
 
 
@@ -451,7 +482,7 @@ ACHIEVEMENT_BY_NAME = {a.name: a
                                                 COMMENT_ACHIEVEMENTS,
                                                 FOLLOW_ACHIEVEMENTS,
                                                 FOLLOWER_ACHIEVEMENTS,
-                                                TOTAL_DISTANCE_ACHIEVEMENTS)}
+                                                PILOT_ACHIEVEMENTS)}
 
 
 def get_achievement(name):
