@@ -45,7 +45,10 @@ def test_duration_achievement():
 def test_get_flight_achievements_inprominent():
     hours = lambda h: datetime.timedelta(0, h * 60 * 60)
     flight = mock.Mock(olc_triangle_distance=10000,
-                       duration=hours(2.6))
+                       olc_classic_distance=10000,
+                       duration=hours(2.6),
+                       phases=[],
+                       igc_file=None)
     achieved = achievements.get_flight_achievements(flight)
     assert len(achieved) == 0
 

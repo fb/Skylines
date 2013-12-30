@@ -15,10 +15,16 @@ class FlightMetrics(object):
         self.flight = flight
 
     @reify
+    def distance(self):
+        """Flight distance in km
+        """
+        return (self.flight.olc_classic_distance or 0) / 1000
+
+    @reify
     def triangle_distance(self):
         if not self.flight.olc_triangle_distance:
             return 0
-        return self.flight.olc_triangle_distance / 1000
+        return (self.flight.olc_triangle_distance or 0) / 1000
 
     @reify
     def duration(self):
@@ -67,6 +73,8 @@ class FlightMetrics(object):
         start_sod = self._release_time
 
         fpath = self._flight_path
+        if not fpath:
+            return 0
 
         start_idx = bisect.bisect([f.seconds_of_day for f in fpath], start_sod)
         release_alt = fpath[start_idx].altitude
@@ -120,6 +128,10 @@ class FlightMetrics(object):
     @reify
     def _flight_path(self):
         from skylines.lib.xcsoar_.flightpath import flight_path
+
+        if not self.flight.igc_file:
+            return []
+
         return flight_path(self.flight.igc_file)
 
     @reify
@@ -133,6 +145,9 @@ class FlightMetrics(object):
         Return list of pairs: (seconds_after_midnight, agl).  Return only
         points, for which ground elevation is available.
         """
+        if not self._flight_path:
+            return []
+
         fpath = iter(self._flight_path)
 
         # We expect elevation times to be subset of flight path times, so for
@@ -241,6 +256,33 @@ class DurationAchievement(Achievement):
         return context.duration >= self.params['duration']
 
 
+class FinalGlideDistanceAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Final glide of more than %(distance)skm", **self.params)
+
+    def is_achieved(self, context):
+        return context.final_glide_distance >= self.params['distance']
+
+
+class AltitudeGainAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Altitude gain over %(gain)sm", **self.params)
+
+    def is_achieved(self, context):
+        return context.altitude_gain >= self.params['gain']
+
+
+class TimeBelow400mAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Spent %(minutes)s minutes below 400 m AGL", **self.params)
+
+    def is_achieved(self, context):
+        return context.time_below_400_m / 60.0 >= self.params['minutes']
+
+
 class CommentAchievement(Achievement):
     @property
     def title(self):
@@ -251,6 +293,18 @@ class CommentAchievement(Achievement):
     def is_achieved(self, context):
         # Assume PilotMetrics as context
         return context.comments_made >= self.params['number']
+
+
+class CirclingPercentageAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Circling percentage on a long flight (> 300km) under "
+                 "%(percentage)s%", **self.params)
+
+    def is_achieved(self, context):
+        if context.distance < 300:
+            return False
+        return context.circling_percentage < self.params['percentage']
 
 
 class TracksUploadedAchievement(Achievement):
@@ -306,12 +360,40 @@ FLIGHT_ACHIEVEMENTS = \
      TriangleAchievement('triangle-300', distance=300),
      TriangleAchievement('triangle-500', distance=500),
      TriangleAchievement('triangle-1000', distance=1000),
+
      DurationAchievement('duration-3', duration=3),
      DurationAchievement('duration-5', duration=5),
      DurationAchievement('duration-7', duration=7),
      DurationAchievement('duration-10', duration=10),
      DurationAchievement('duration-12', duration=12),
      DurationAchievement('duration-15', duration=15),
+
+     FinalGlideDistanceAchievement('final-glide-10', distance=10),
+     FinalGlideDistanceAchievement('final-glide-20', distance=20),
+     FinalGlideDistanceAchievement('final-glide-30', distance=30),
+     FinalGlideDistanceAchievement('final-glide-50', distance=50),
+     FinalGlideDistanceAchievement('final-glide-75', distance=75),
+     FinalGlideDistanceAchievement('final-glide-100', distance=100),
+
+     AltitudeGainAchievement('alt-gain-1000', gain=1000),
+     AltitudeGainAchievement('alt-gain-2000', gain=2000),
+     AltitudeGainAchievement('alt-gain-3000', gain=3000),
+     AltitudeGainAchievement('alt-gain-4000', gain=4000),
+     AltitudeGainAchievement('alt-gain-5000', gain=5000),
+
+     TimeBelow400mAchievement('time-below-400m-30', minutes=30),
+     TimeBelow400mAchievement('time-below-400m-45', minutes=45),
+     TimeBelow400mAchievement('time-below-400m-60', minutes=60),
+     TimeBelow400mAchievement('time-below-400m-90', minutes=90),
+     TimeBelow400mAchievement('time-below-400m-120', minutes=120),
+     TimeBelow400mAchievement('time-below-400m-180', minutes=180),
+
+     CirclingPercentageAchievement('circling-perc-30', percentage=30),
+     CirclingPercentageAchievement('circling-perc-25', percentage=25),
+     CirclingPercentageAchievement('circling-perc-20', percentage=20),
+     CirclingPercentageAchievement('circling-perc-15', percentage=15),
+     CirclingPercentageAchievement('circling-perc-10', percentage=10),
+     CirclingPercentageAchievement('circling-perc-5', percentage=5),
      ]
 
 
