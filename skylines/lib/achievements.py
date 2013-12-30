@@ -299,62 +299,67 @@ class TotalDistanceAchievement(Achievement):
         return context.total_distance >= self.params['number']
 
 
-FLIGHT_ACHIEVEMENTS = [TriangleAchievement('triangle-50', distance=50),
-                       TriangleAchievement('triangle-100', distance=100),
-                       TriangleAchievement('triangle-200', distance=200),
-                       TriangleAchievement('triangle-300', distance=300),
-                       TriangleAchievement('triangle-500', distance=500),
-                       TriangleAchievement('triangle-1000', distance=1000),
-
-                       DurationAchievement('duration-3', duration=3),
-                       DurationAchievement('duration-5', duration=5),
-                       DurationAchievement('duration-7', duration=7),
-                       DurationAchievement('duration-10', duration=10),
-                       DurationAchievement('duration-12', duration=12),
-                       DurationAchievement('duration-15', duration=15),
-                       ]
-
-
-UPLOAD_ACHIEVEMENTS = [TracksUploadedAchievement('upload-1', number=1),
-                       TracksUploadedAchievement('upload-10', number=10),
-                       TracksUploadedAchievement('upload-100', number=100),
-                       TracksUploadedAchievement('upload-1000', number=1000),
-                       ]
+FLIGHT_ACHIEVEMENTS = \
+    [TriangleAchievement('triangle-50', distance=50),
+     TriangleAchievement('triangle-100', distance=100),
+     TriangleAchievement('triangle-200', distance=200),
+     TriangleAchievement('triangle-300', distance=300),
+     TriangleAchievement('triangle-500', distance=500),
+     TriangleAchievement('triangle-1000', distance=1000),
+     DurationAchievement('duration-3', duration=3),
+     DurationAchievement('duration-5', duration=5),
+     DurationAchievement('duration-7', duration=7),
+     DurationAchievement('duration-10', duration=10),
+     DurationAchievement('duration-12', duration=12),
+     DurationAchievement('duration-15', duration=15),
+     ]
 
 
-COMMENT_ACHIEVEMENTS = [CommentAchievement('comment-1', number=1),
-                        CommentAchievement('comment-10', number=10),
-                        CommentAchievement('comment-100', number=100),
-                        CommentAchievement('comment-1000', number=1000),
-                        ]
+UPLOAD_ACHIEVEMENTS = \
+    [TracksUploadedAchievement('upload-1', number=1),
+     TracksUploadedAchievement('upload-10', number=10),
+     TracksUploadedAchievement('upload-100', number=100),
+     TracksUploadedAchievement('upload-1000', number=1000),
+     ]
 
 
-FOLLOW_ACHIEVEMENTS = [UsersFollowedAchievement('follow-1', number=1),
-                       UsersFollowedAchievement('follow-10', number=10),
-                       UsersFollowedAchievement('follow-100', number=100),
-                       UsersFollowedAchievement('follow-1000', number=1000),
-                       ]
+COMMENT_ACHIEVEMENTS = \
+    [CommentAchievement('comment-1', number=1),
+     CommentAchievement('comment-10', number=10),
+     CommentAchievement('comment-100', number=100),
+     CommentAchievement('comment-1000', number=1000),
+     ]
 
 
-FOLLOWER_ACHIEVEMENTS = [FollowersAttractedAchievement('follower-1', number=1),
-                         FollowersAttractedAchievement('follower-10', number=10),
-                         FollowersAttractedAchievement('follower-100', number=100),
-                         FollowersAttractedAchievement('follower-1000', number=1000),
-                         ]
+FOLLOW_ACHIEVEMENTS = \
+    [UsersFollowedAchievement('follow-1', number=1),
+     UsersFollowedAchievement('follow-10', number=10),
+     UsersFollowedAchievement('follow-100', number=100),
+     UsersFollowedAchievement('follow-1000', number=1000),
+     ]
 
-TOTAL_DISTANCE_ACHIEVEMENTS = [TotalDistanceAchievement('total-distance-500', number=500),
-                               TotalDistanceAchievement('total-distance-1000', number=1000),
-                               TotalDistanceAchievement('total-distance-2500', number=2500),
-                               TotalDistanceAchievement('total-distance-5000', number=5000),
-                               TotalDistanceAchievement('total-distance-10000', number=10000),
-                               TotalDistanceAchievement('total-distance-25000', number=25000),
-                               TotalDistanceAchievement('total-distance-50000', number=50000),
-                               TotalDistanceAchievement('total-distance-75000', number=75000),
-                               TotalDistanceAchievement('total-distance-100000', number=100000),
-                               TotalDistanceAchievement('total-distance-200000', number=200000),
-                               TotalDistanceAchievement('total-distance-500000', number=500000),
-                               TotalDistanceAchievement('total-distance-1000000', number=1000000)
-                               ]
+
+FOLLOWER_ACHIEVEMENTS = \
+    [FollowersAttractedAchievement('follower-1', number=1),
+     FollowersAttractedAchievement('follower-10', number=10),
+     FollowersAttractedAchievement('follower-100', number=100),
+     FollowersAttractedAchievement('follower-1000', number=1000),
+     ]
+
+TOTAL_DISTANCE_ACHIEVEMENTS = \
+    [TotalDistanceAchievement('total-distance-500', number=500),
+     TotalDistanceAchievement('total-distance-1000', number=1000),
+     TotalDistanceAchievement('total-distance-2500', number=2500),
+     TotalDistanceAchievement('total-distance-5000', number=5000),
+     TotalDistanceAchievement('total-distance-10000', number=10000),
+     TotalDistanceAchievement('total-distance-25000', number=25000),
+     TotalDistanceAchievement('total-distance-50000', number=50000),
+     TotalDistanceAchievement('total-distance-75000', number=75000),
+     TotalDistanceAchievement('total-distance-100000', number=100000),
+     TotalDistanceAchievement('total-distance-200000', number=200000),
+     TotalDistanceAchievement('total-distance-500000', number=500000),
+     TotalDistanceAchievement('total-distance-1000000', number=1000000)
+     ]
 
 
 ACHIEVEMENT_BY_NAME = {a.name: a
