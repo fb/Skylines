@@ -178,16 +178,23 @@ class TestPilotMetrics(object):
         c = achievements.PilotMetrics(self.pilot)
         assert c.total_distance == 0
 
-        igc1 = self.create_sample_igc_file('f1.igc')
-        flight1 = self.create_sample_flight(igc1)
-        flight1.olc_classic_distance = 89999
+        igc = self.create_sample_igc_file('f1.igc')
+        flight = self.create_sample_flight(igc)
+        flight.olc_classic_distance = 89999
 
-        model.db.session.add(flight1)
+        model.db.session.add(flight)
         model.db.session.flush()
 
-        c = achievements.PilotMetrics(self.pilot)
-        assert c.total_distance == 89.999
+        c1 = achievements.PilotMetrics(self.pilot)
+        assert c1.total_distance == 89.999
 
         # Make sure users are not getting scores from other pilots
         c2 = achievements.PilotMetrics(self.follower)
         assert c2.total_distance == 0
+
+        # Copilots gets total distance counted too
+        flight.co_pilot = self.follower
+        model.db.session.flush()
+
+        c3 = achievements.PilotMetrics(self.follower)
+        assert c3.total_distance == 89.999

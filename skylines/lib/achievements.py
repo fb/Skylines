@@ -217,7 +217,8 @@ class PilotMetrics(object):
         from skylines.model import db
 
         c = db.session.query(func.sum(Flight.olc_classic_distance)) \
-            .filter(Flight.pilot == self.user)
+            .filter((Flight.pilot == self.user) |
+                    (Flight.co_pilot == self.user))
 
         return (c.scalar() or 0) / 1000.0
 
