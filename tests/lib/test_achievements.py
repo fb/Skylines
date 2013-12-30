@@ -49,30 +49,30 @@ def test_get_flight_achievements_inprominent():
 
 
 @pytest.mark.usefixtures("db")
-class TestFlightAchievementsDataCollector(object):
+class TestFlightMetrics(object):
     def test_duration(self):
-        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        c = achievements.FlightMetrics(self.flight_100km)
         assert c.duration == 3.39
 
     def test_triangle_distance(self):
-        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        c = achievements.FlightMetrics(self.flight_100km)
         assert c.triangle_distance == 57
 
     def test_final_glide_distance(self):
-        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        c = achievements.FlightMetrics(self.flight_100km)
         assert c.final_glide_distance == 36
 
     def test_altitude_gain(self):
-        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        c = achievements.FlightMetrics(self.flight_100km)
         assert c.altitude_gain == 981
 
     def test_circling_percentage(self):
-        c = achievements.FlightAchievementDataCollector(self.flight_100km)
+        c = achievements.FlightMetrics(self.flight_100km)
         assert c.circling_percentage == 30
 
     def test_time_below_400_m(self):
         with self.level_ground(100):
-            c = achievements.FlightAchievementDataCollector(self.flight_100km)
+            c = achievements.FlightMetrics(self.flight_100km)
             assert c.time_below_400_m == 121
 
     def level_ground(self, elevation):

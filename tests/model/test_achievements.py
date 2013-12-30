@@ -119,7 +119,7 @@ class TestAchievements(object):
         assert event2.achievement.time_achieved == datetime(2013, 7, 6, 17, 0)
 
     def test_user_upload_achievements(self):
-        from skylines.lib.achievements import SkylinesAchievementDataCollector
+        from skylines.lib.achievements import PilotMetrics
 
         # Create two flights
         igc1 = self.create_sample_igc_file('f1.igc')
@@ -133,33 +133,33 @@ class TestAchievements(object):
         db.session.add(flight2)
         db.session.flush()
 
-        sadc = SkylinesAchievementDataCollector(self.pilot)
+        sadc = PilotMetrics(self.pilot)
         assert sadc.tracks_uploaded == 2
 
     def test_users_followed(self):
-        from skylines.lib.achievements import SkylinesAchievementDataCollector
+        from skylines.lib.achievements import PilotMetrics
 
         db.session.flush()
 
-        sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
-        sadc_follower = SkylinesAchievementDataCollector(self.follower)
+        sadc_pilot = PilotMetrics(self.pilot)
+        sadc_follower = PilotMetrics(self.follower)
 
         assert sadc_pilot.users_followed == 0
         assert sadc_follower.users_followed == 1
 
     def test_followers_attracted(self):
-        from skylines.lib.achievements import SkylinesAchievementDataCollector
+        from skylines.lib.achievements import PilotMetrics
 
         db.session.flush()
 
-        sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
-        sadc_follower = SkylinesAchievementDataCollector(self.follower)
+        sadc_pilot = PilotMetrics(self.pilot)
+        sadc_follower = PilotMetrics(self.follower)
 
         assert sadc_pilot.followers_attracted == 1
         assert sadc_follower.followers_attracted == 0
 
     def test_comments_made(self):
-        from skylines.lib.achievements import SkylinesAchievementDataCollector
+        from skylines.lib.achievements import PilotMetrics
         from skylines.model.flight_comment import FlightComment
 
         # Create flight
@@ -171,8 +171,8 @@ class TestAchievements(object):
         FlightComment(user=self.pilot, flight=flight1, text='Nice flight!')
         db.session.flush()
 
-        sadc_pilot = SkylinesAchievementDataCollector(self.pilot)
-        sadc_follower = SkylinesAchievementDataCollector(self.follower)
+        sadc_pilot = PilotMetrics(self.pilot)
+        sadc_follower = PilotMetrics(self.follower)
 
         assert sadc_pilot.comments_made == 1
         assert sadc_follower.comments_made == 0

@@ -7,7 +7,7 @@ from skylines.lib.decorators import reify
 from skylines.model.flight import get_elevations_for_flight
 
 
-class FlightAchievementDataCollector(object):
+class FlightMetrics(object):
     """Collect information useful for detecting achievements.
 
     """
@@ -167,7 +167,7 @@ class FlightAchievementDataCollector(object):
         return stime.hour * 3600 + stime.minute * 60 + stime.second
 
 
-class SkylinesAchievementDataCollector(object):
+class PilotMetrics(object):
     """Collect statistics about skylines-related user activity
     """
 
@@ -237,7 +237,7 @@ class CommentAchievement(Achievement):
         return _("%(number)s comments made on SkyLines", **self.params)
 
     def is_achieved(self, context):
-        # Assume SkyLinesAchievementDataCollector as context
+        # Assume PilotMetrics as context
         return context.comments_made >= self.params['number']
 
 
@@ -249,7 +249,7 @@ class TracksUploadedAchievement(Achievement):
         return _("%(number)s tracks uploaded on SkyLines", **self.params)
 
     def is_achieved(self, context):
-        # Assume SkyLinesAchievementDataCollector as context
+        # Assume PilotMetrics as context
         return context.tracks_uploaded >= self.params['number']
 
 
@@ -261,7 +261,7 @@ class UsersFollowedAchievement(Achievement):
         return _("%(number)s users followed on SkyLines", **self.params)
 
     def is_achieved(self, context):
-        # Assume SkyLinesAchievementDataCollector as context
+        # Assume PilotMetrics as context
         return context.users_followed >= self.params['number']
 
 
@@ -273,7 +273,7 @@ class FollowersAttractedAchievement(Achievement):
         return _("Attracted %(number)s followers on SkyLines", **self.params)
 
     def is_achieved(self, context):
-        # Assume SkyLinesAchievementDataCollector as context
+        # Assume PilotMetrics as context
         return context.followers_attracted >= self.params['number']
 
 
@@ -338,10 +338,10 @@ def calculate_achievements(context, ach_definitions):
 
 
 def get_user_achievements(user, ach_definitions):
-    context = SkylinesAchievementDataCollector(user)
+    context = PilotMetrics(user)
     return calculate_achievements(context, ach_definitions)
 
 
 def get_flight_achievements(flight):
-    context = FlightAchievementDataCollector(flight)
+    context = FlightMetrics(flight)
     return calculate_achievements(context, FLIGHT_ACHIEVEMENTS)
