@@ -240,6 +240,13 @@ class PilotMetrics(object):
         return self._hours(Flight.pilot)
 
     @reify
+    def aircraft_model_count(self):
+        c = db.session.query(func.count(distinct(Flight.model_id))) \
+            .filter(self._pilot_or_copilot()) \
+            .scalar()
+        return c
+
+    @reify
     def copilot_hours(self):
         return self._hours(Flight.co_pilot)
 
@@ -422,6 +429,15 @@ class CoPilotHoursAchievement(Achievement):
         return context.copilot_hours >= self.params["hours"]
 
 
+class DifferentPlaneTypesAchievement(Achievement):
+    @property
+    def title(self):
+        return _("Flying %(number)s different plane types", **self.params)
+
+    def is_achieved(self, context):
+        return context.aircraft_model_count >= self.params["number"]
+
+
 FLIGHT_ACHIEVEMENTS = \
     [TriangleAchievement('triangle-50', distance=50),
      TriangleAchievement('triangle-100', distance=100),
@@ -550,6 +566,12 @@ PILOT_ACHIEVEMENTS = \
      CoPilotHoursAchievement("copilot-hours-5000", hours=5000),
      CoPilotHoursAchievement("copilot-hours-10000", hours=10000),
 
+     DifferentPlaneTypesAchievement("plane-types-2", number=2),
+     DifferentPlaneTypesAchievement("plane-types-3", number=3),
+     DifferentPlaneTypesAchievement("plane-types-5", number=5),
+     DifferentPlaneTypesAchievement("plane-types-10", number=10),
+     DifferentPlaneTypesAchievement("plane-types-15", number=15),
+     DifferentPlaneTypesAchievement("plane-types-20", number=20),
      ]
 
 

@@ -327,3 +327,45 @@ class TestPilotMetrics(object):
 
         c2 = achievements.PilotMetrics(self.follower)
         assert c2.copilot_hours == 8
+
+    def test_model_count(self):
+        c = achievements.PilotMetrics(self.pilot)
+        assert c.aircraft_model_count == 0
+
+        pt1 = model.aircraft_model.AircraftModel(name="Jantar Std 3", kind=1)
+        model.db.session.add(pt1)
+
+        pt2 = model.aircraft_model.AircraftModel(name="Blanik", kind=1)
+        model.db.session.add(pt2)
+
+        # Two different models for pilot and 1 for co-pilot
+        igc1 = self.create_sample_igc_file('f1.igc')
+        flight1 = self.create_sample_flight(igc1)
+        flight1.model = pt1
+        model.db.session.add(flight1)
+
+        igc2 = self.create_sample_igc_file('f2.igc')
+        flight2 = self.create_sample_flight(igc2)
+        flight2.model = pt2
+        flight2.co_pilot = self.follower
+        model.db.session.add(flight2)
+
+        igc3 = self.create_sample_igc_file('f3.igc')
+        flight3 = self.create_sample_flight(igc3)
+        flight3.model = pt2
+        flight3.pilot = self.follower
+        flight3.co_pilot = self.pilot
+        model.db.session.add(flight3)
+
+        # no model flight
+        igc4 = self.create_sample_igc_file('f4.igc')
+        flight4 = self.create_sample_flight(igc4)
+        model.db.session.add(flight4)
+
+        model.db.session.flush()
+
+        c1 = achievements.PilotMetrics(self.pilot)
+        assert c1.aircraft_model_count == 2
+
+        c2 = achievements.PilotMetrics(self.follower)
+        assert c2.aircraft_model_count == 1
