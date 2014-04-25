@@ -1,7 +1,7 @@
 import math
 from datetime import datetime
 
-from flask import Blueprint, request, render_template, redirect, url_for, abort, current_app, jsonify, g, flash
+from flask import Blueprint, request, render_template, redirect, url_for, abort, current_app, jsonify, g, flash, make_response
 from flask.ext.babel import lazy_gettext as l_, _
 
 from sqlalchemy.orm import undefer_group, contains_eager
@@ -249,7 +249,7 @@ def json():
     if not trace:
         abort(404)
 
-    return jsonify(
+    resp = make_response(jsonify(
         encoded=trace['encoded'],
         num_levels=trace['num_levels'],
         zoom_levels=trace['zoom_levels'],
@@ -262,7 +262,9 @@ def json():
         sfid=g.flight.id,
         additional=dict(
             registration=g.flight.registration,
-            competition_id=g.flight.competition_id))
+            competition_id=g.flight.competition_id)))
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
 
 
 def _get_near_flights(flight, location, time, max_distance=1000):
