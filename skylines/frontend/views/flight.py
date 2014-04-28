@@ -263,6 +263,9 @@ def json():
         additional=dict(
             registration=g.flight.registration,
             competition_id=g.flight.competition_id)))
+    last_modified = g.flight.time_modified \
+        .strftime('%a, %d %b %Y %H:%M:%S GMT')
+    resp.headers['Last-Modified'] = last_modified
     resp.headers['Cache-Control'] = 'public, max-age=86400'
     return resp
 
