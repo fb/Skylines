@@ -30,6 +30,7 @@ class Merge(Command):
         db.session.query(Flight).filter_by(pilot_id=old_id).update({'pilot_id': new_id})
         db.session.query(Flight).filter_by(co_pilot_id=old_id).update({'co_pilot_id': new_id})
         db.session.query(TrackingFix).filter_by(pilot_id=old_id).update({'pilot_id': new_id})
+        db.session.query(UnlockedAchievement).filter_by(owner_id=old_id).update({'owner_id': new_id})
         db.session.flush()
         db.session.commit()
 
