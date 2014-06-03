@@ -5,7 +5,7 @@ from sqlalchemy.sql.expression import and_, or_
 from skylines.lib.xcsoar_ import analysis
 from skylines.worker.celery import celery
 from skylines.model import db, Flight, FlightPathChunks, FlightMeetings
-from skylines.model.achievement import unlock_flight_achievements
+from skylines.model import achievement
 
 logger = get_task_logger(__name__)
 
@@ -14,13 +14,15 @@ logger = get_task_logger(__name__)
 def analyse_flight(flight_id, full=2048, triangle=6144, sprint=512):
     logger.info("Analysing flight %d" % flight_id)
 
-    flight = Flight.get(flight_id)
-    success = analysis.analyse_flight(flight, full, triangle, sprint)
-
-    if not success:
+    if analysis.analyse_flight(Flight.get(flight_id), full, triangle, sprint):
+        db.session.commit()
+    else:
         logger.warn("Analysis of flight %d failed." % flight_id)
 
-    unlock_flight_achievements(flight)
+    if achievement.unlock_flight_achievements(Flight.get(flight_id)):
+        db.session.commit()
+    else:
+        logger.warn("Unlocking achievements for flight %d failed." % flight_id)
 
 @celery.task
 def find_meetings(flight_id):
@@ -43,6 +45,5 @@ def find_meetings(flight_id):
 
         for meeting in meetings:
             FlightMeetings.add_meeting(flight, other_flight, meeting['times'][0], meeting['times'][-1])
-        return
 
     db.session.commit()
